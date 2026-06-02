@@ -1,16 +1,45 @@
-# React + Vite
+# Inspo Fashion Admin
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Protected React admin dashboard for managing the Inspo Fashion storefront.
 
-Currently, two official plugins are available:
+## Key Features
+- Protected React admin dashboard for managing the Inspo Fashion storefront
+- Supabase integration is called out for the data, auth, or application state layer present in the codebase.
+- Includes management-facing screens such as admin, dashboard, or coordinator workflows where present.
+- Organized UI components and screens make the main user flows visible from the project structure.
+- Existing media assets are referenced only where they are already present in the repository.
+- Package scripts provide reproducible development, build, and preview commands.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tech Stack
+- JavaScript/TypeScript
+- React
+- Vite
+- Tailwind CSS
+- Supabase
+- HTML/CSS
 
-## React Compiler
+## Project Structure
+- src/app or app - application routes, screens, and layout files.
+- components - reusable UI and workflow components.
+- public / assets - static images, icons, manifests, and visual assets.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Setup and Run
+```bash
+git clone https://github.com/theadhithyankr/inspofashion-admin.git
+cd inspofashion-admin
+npm install
+npm run dev
+npm run build
+npm run preview
+```
 
-## Expanding the ESLint configuration
+## Screenshots and Media
+- Existing asset: src/assets/hero.png
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## What This Project Demonstrates
+- Building user-facing web applications with component-based UI and modern frontend tooling.
+- Integrating managed backend services for auth, persistence, realtime data, or app infrastructure.
+- Presenting project scope, setup, and technical choices clearly for reviewers and recruiters.
+
+## Repository
+- GitHub: https://github.com/theadhithyankr/inspofashion-admin
