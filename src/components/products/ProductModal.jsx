@@ -8,7 +8,6 @@ import { validateProduct, validateImageFile } from '../../utils/validators'
 import { useCollections } from '../../hooks/useCollections'
 
 const COMMON_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']
-const COMMON_COLORS = ['White', 'Black', 'Gray', 'Navy', 'Red', 'Blue', 'Green', 'Yellow', 'Pink', 'Purple', 'Beige', 'Brown', 'Olive']
 
 export function ProductModal({ isOpen, onClose, mode = 'create', product = null, onSuccess }) {
   const { collections } = useCollections()
@@ -19,7 +18,6 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
     compare_at_price: '',
     category: '',
     sizes: [],
-    colors: [],
     material: '',
     fit_notes: '',
     care_instructions: '',
@@ -44,7 +42,6 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
         compare_at_price: product.compare_at_price || '',
         category: product.category || '',
         sizes: product.sizes || [],
-        colors: product.colors || [],
         material: product.material || '',
         fit_notes: product.fit_notes || '',
         care_instructions: product.care_instructions || '',
@@ -73,7 +70,6 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
       compare_at_price: '',
       category: '',
       sizes: [],
-      colors: [],
       material: '',
       fit_notes: '',
       care_instructions: '',
@@ -138,15 +134,6 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
     }
   }
 
-  const toggleColor = (color) => {
-    setFormData((prev) => ({
-      ...prev,
-      colors: prev.colors.includes(color)
-        ? prev.colors.filter((c) => c !== color)
-        : [...prev.colors, color],
-    }))
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -194,7 +181,6 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
         compare_at_price: formData.compare_at_price ? parseFloat(formData.compare_at_price) : null,
         category: formData.category.trim(),
         sizes: formData.sizes,
-        colors: formData.colors,
         material: formData.material.trim(),
         fit_notes: formData.fit_notes.trim(),
         care_instructions: formData.care_instructions.trim(),
@@ -397,30 +383,6 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
             ))}
           </div>
           {errors.sizes && <p className="mt-1 text-sm text-red-600 dark:text-red-200">{errors.sizes}</p>}
-        </div>
-
-        {/* Colors */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-            Available Colors
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {COMMON_COLORS.map((color) => (
-              <button
-                key={color}
-                type="button"
-                onClick={() => toggleColor(color)}
-                disabled={loading}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  formData.colors?.includes(color)
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700'
-                } disabled:opacity-50`}
-              >
-                {color}
-              </button>
-            ))}
-          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
