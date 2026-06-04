@@ -7,7 +7,7 @@ import { productService } from '../../services/productService'
 import { validateProduct, validateImageFile } from '../../utils/validators'
 import { useCollections } from '../../hooks/useCollections'
 
-const COMMON_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+const COMMON_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']
 const COMMON_COLORS = ['White', 'Black', 'Gray', 'Navy', 'Red', 'Blue', 'Green', 'Yellow', 'Pink', 'Purple', 'Beige', 'Brown', 'Olive']
 
 export function ProductModal({ isOpen, onClose, mode = 'create', product = null, onSuccess }) {
