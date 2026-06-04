@@ -11,13 +11,13 @@ export function DeleteConfirmDialog({ isOpen, onClose, onConfirm, product, item,
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Delete ${typeLabel}`} size="sm">
       <div className="text-center">
-        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/40 mb-4">
           <AlertTriangle className="h-6 w-6 text-red-600" />
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
           Are you sure?
         </h3>
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           This will permanently delete <strong>{DisplayName}</strong> and remove its image from storage.
           This action cannot be undone.
         </p>

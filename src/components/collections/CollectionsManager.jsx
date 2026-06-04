@@ -60,8 +60,8 @@ export function CollectionsManager() {
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Collections</h1>
-          <p className="text-gray-600 mt-2">Manage your product categories and collections</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Collections</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Manage your product categories and collections</p>
         </div>
         <Button variant="primary" size="md" onClick={handleAddClick} className="mt-4 sm:mt-0">
           <Plus className="w-5 h-5 mr-2" />
@@ -70,12 +70,12 @@ export function CollectionsManager() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-red-50 border border-red-200 text-red-700 dark:bg-red-950 dark:border-red-900 dark:text-red-200 px-4 py-3 rounded-lg mb-6">
           {error}
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Spinner size="lg" />

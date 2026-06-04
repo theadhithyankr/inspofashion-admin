@@ -8,7 +8,7 @@ function ProductImage({ src, alt, className }) {
 
   if (error || !src) {
     return (
-      <div className={`${className} bg-gray-100 flex items-center justify-center`}>
+      <div className={`${className} bg-gray-100 dark:bg-gray-800 flex items-center justify-center`}>
         <ImageOff className="w-6 h-6 text-gray-400" />
       </div>
     )
@@ -41,7 +41,7 @@ export function ProductTable({ products, onEdit, onDelete, onToggle }) {
   if (products.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 text-lg">No products yet. Add your first product to get started!</p>
+        <p className="text-gray-500 dark:text-gray-400 text-lg">No products yet. Add your first product to get started!</p>
       </div>
     )
   }
@@ -50,35 +50,35 @@ export function ProductTable({ products, onEdit, onDelete, onToggle }) {
     <>
       {/* Desktop table view */}
       <div className="hidden md:block overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+          <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Image
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Title
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Category
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Price
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Sizes
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Status
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
             {products.map((product) => (
-              <tr key={product.id} className="hover:bg-gray-50">
+              <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <ProductImage
                     src={product.image_url}
@@ -87,20 +87,20 @@ export function ProductTable({ products, onEdit, onDelete, onToggle }) {
                   />
                 </td>
                 <td className="px-6 py-4">
-                  <div className="text-sm font-medium text-gray-900">{product.title}</div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{product.title}</div>
                   {product.description && (
-                    <div className="text-sm text-gray-500 line-clamp-2">{product.description}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{product.description}</div>
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-primary-100 text-primary-800">
+                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-primary-100 text-primary-800 dark:bg-gray-800 dark:text-primary-200">
                     {product.category}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                   ${parseFloat(product.price).toFixed(2)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                   {product.sizes.join(', ')}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -110,7 +110,7 @@ export function ProductTable({ products, onEdit, onDelete, onToggle }) {
                       onChange={() => handleToggle(product)}
                       disabled={toggling === product.id}
                     />
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-gray-600 dark:text-gray-300">
                       {product.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </div>
@@ -140,7 +140,7 @@ export function ProductTable({ products, onEdit, onDelete, onToggle }) {
       {/* Mobile card view */}
       <div className="md:hidden space-y-4">
         {products.map((product) => (
-          <div key={product.id} className="bg-white border border-gray-200 rounded-lg p-4">
+          <div key={product.id} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
             <div className="flex space-x-4">
               <ProductImage
                 src={product.image_url}
@@ -148,10 +148,10 @@ export function ProductTable({ products, onEdit, onDelete, onToggle }) {
                 className="h-24 w-24 rounded-lg object-cover flex-shrink-0"
               />
               <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-medium text-gray-900 truncate">{product.title}</h3>
-                <p className="text-sm text-gray-500 mt-1">{product.category}</p>
-                <p className="text-lg font-bold text-gray-900 mt-1">${parseFloat(product.price).toFixed(2)}</p>
-                <p className="text-sm text-gray-500 mt-1">Sizes: {product.sizes.join(', ')}</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 truncate">{product.title}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{product.category}</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-1">${parseFloat(product.price).toFixed(2)}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Sizes: {product.sizes.join(', ')}</p>
               </div>
             </div>
 
@@ -162,7 +162,7 @@ export function ProductTable({ products, onEdit, onDelete, onToggle }) {
                   onChange={() => handleToggle(product)}
                   disabled={toggling === product.id}
                 />
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-gray-600 dark:text-gray-300">
                   {product.is_active ? 'Active' : 'Inactive'}
                 </span>
               </div>

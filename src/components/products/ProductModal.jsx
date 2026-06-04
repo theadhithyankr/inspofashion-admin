@@ -234,14 +234,14 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
     <Modal isOpen={isOpen} onClose={handleClose} title={mode === 'create' ? 'Add New Product' : 'Edit Product'} size="lg">
       <form onSubmit={handleSubmit} className="space-y-6">
         {errors.submit && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          <div className="bg-red-50 border border-red-200 text-red-700 dark:bg-red-950 dark:border-red-900 dark:text-red-200 px-4 py-3 rounded-lg">
             {errors.submit}
           </div>
         )}
 
         {/* Image Upload */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
             Product Images <span className="text-red-500">*</span>
           </label>
 
@@ -273,9 +273,9 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
 
             {/* Upload Box */}
             <div className="flex-shrink-0">
-              <label className="flex flex-col items-center justify-center w-24 h-24 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+              <label className="flex flex-col items-center justify-center w-24 h-24 border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                 <Upload className="w-6 h-6 text-gray-400 mb-1" />
-                <span className="text-xs text-gray-500 text-center px-1">Upload</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 text-center px-1">Upload</span>
                 <input
                   type="file"
                   multiple
@@ -287,9 +287,9 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
               </label>
             </div>
           </div>
-          <span className="text-xs text-gray-400">PNG, JPG, WebP (max 5MB each). First image will be the primary one.</span>
+          <span className="text-xs text-gray-400 dark:text-gray-500">PNG, JPG, WebP (max 5MB each). First image will be the primary one.</span>
 
-          {errors.image && <p className="mt-1 text-sm text-red-600">{errors.image}</p>}
+          {errors.image && <p className="mt-1 text-sm text-red-600 dark:text-red-200">{errors.image}</p>}
         </div>
 
         {/* Title */}
@@ -305,7 +305,7 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
             Description
           </label>
           <textarea
@@ -313,12 +313,12 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
             value={formData.description}
             onChange={(e) => handleChange('description', e.target.value)}
             rows={3}
-            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-              errors.description ? 'border-red-500' : 'border-gray-300'
+            className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+              errors.description ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'
             }`}
             disabled={loading}
           />
-          {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+          {errors.description && <p className="mt-1 text-sm text-red-600 dark:text-red-200">{errors.description}</p>}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -353,14 +353,14 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
 
           {/* Category */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
               Category <span className="text-red-500">*</span>
             </label>
             <select
               value={formData.category}
               onChange={(e) => handleChange('category', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                errors.category ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                errors.category ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'
               }`}
               required
               disabled={loading}
@@ -370,13 +370,13 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
                 <option key={cat.id} value={cat.name}>{cat.name}</option>
               ))}
             </select>
-            {errors.category && <p className="mt-1 text-sm text-red-600">{errors.category}</p>}
+            {errors.category && <p className="mt-1 text-sm text-red-600 dark:text-red-200">{errors.category}</p>}
           </div>
         </div>
 
         {/* Sizes */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
             Available Sizes <span className="text-red-500">*</span>
           </label>
           <div className="flex flex-wrap gap-2">
@@ -389,19 +389,19 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   formData.sizes.includes(size)
                     ? 'bg-primary-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700'
                 } disabled:opacity-50`}
               >
                 {size}
               </button>
             ))}
           </div>
-          {errors.sizes && <p className="mt-1 text-sm text-red-600">{errors.sizes}</p>}
+          {errors.sizes && <p className="mt-1 text-sm text-red-600 dark:text-red-200">{errors.sizes}</p>}
         </div>
 
         {/* Colors */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
             Available Colors
           </label>
           <div className="flex flex-wrap gap-2">
@@ -414,7 +414,7 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   formData.colors?.includes(color)
                     ? 'bg-primary-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700'
                 } disabled:opacity-50`}
               >
                 {color}
@@ -485,14 +485,14 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
 
         {/* Progress indicator */}
         {uploadProgress && (
-          <div className="bg-primary-50 border border-primary-200 text-primary-700 px-4 py-3 rounded-lg flex items-center">
+          <div className="bg-primary-50 border border-primary-200 text-primary-700 dark:bg-gray-800 dark:border-gray-700 dark:text-primary-200 px-4 py-3 rounded-lg flex items-center">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600 mr-3" />
             {uploadProgress}
           </div>
         )}
 
         {/* Action buttons */}
-        <div className="flex justify-end space-x-3 pt-4 border-t">
+        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-800">
           <Button
             type="button"
             variant="secondary"

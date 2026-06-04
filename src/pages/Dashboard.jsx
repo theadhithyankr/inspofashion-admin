@@ -71,8 +71,8 @@ export function Dashboard() {
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Product Management</h1>
-              <p className="text-gray-600 mt-2">Manage your clothing catalog</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Product Management</h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-2">Manage your clothing catalog</p>
             </div>
             <Button
               variant="primary"
@@ -86,12 +86,12 @@ export function Dashboard() {
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            <div className="bg-red-50 border border-red-200 text-red-700 dark:bg-red-950 dark:border-red-900 dark:text-red-200 px-4 py-3 rounded-lg mb-6">
               {error}
             </div>
           )}
 
-          <div className="bg-white rounded-lg shadow">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow">
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <Spinner size="lg" />
@@ -154,14 +154,14 @@ export function Dashboard() {
     return (
       <div className="p-4 sm:p-6 lg:p-8">
         <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{activeTab}</h1>
-          <p className="text-gray-600 mt-2">Configure and manage {activeTab.toLowerCase()} settings for Inspofashions.</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{activeTab}</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Configure and manage {activeTab.toLowerCase()} settings for Inspofashions.</p>
         </div>
         
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6">
           <div className="text-center py-10">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Management feature coming soon</h3>
-            <p className="text-gray-500 max-w-md mx-auto">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Management feature coming soon</h3>
+            <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
               The {activeTab} editor is currently being connected to the storefront. You will be able to customize this component dynamically once the API is available.
             </p>
             <Button variant="secondary" className="mt-6" onClick={() => setActiveTab('Products')}>

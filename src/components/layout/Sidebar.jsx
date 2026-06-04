@@ -18,9 +18,9 @@ export function Sidebar({ mobileOpen, setMobileOpen, activeTab = 'Products', set
 
   const SidebarContent = () => (
     <>
-      <div className="flex items-center space-x-2 px-4 py-6 border-b border-gray-100">
+      <div className="flex items-center space-x-2 px-4 py-6 border-b border-gray-100 dark:border-gray-800">
         <Package className="w-8 h-8 text-primary-600" />
-        <span className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '1.25rem' }}>
+        <span className="text-xl font-bold text-gray-900 dark:text-gray-100" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '1.25rem' }}>
           inspofashions
         </span>
       </div>
@@ -34,11 +34,11 @@ export function Sidebar({ mobileOpen, setMobileOpen, activeTab = 'Products', set
               onClick={() => handleNavClick(item.name)}
               className={`w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
                 isCurrent
-                  ? 'bg-primary-50 text-primary-700'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  ? 'bg-primary-50 text-primary-700 dark:bg-gray-800 dark:text-primary-200'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white'
               }`}
             >
-              <item.icon className={`mr-3 h-5 w-5 ${isCurrent ? 'text-primary-700' : 'text-gray-400'}`} />
+              <item.icon className={`mr-3 h-5 w-5 ${isCurrent ? 'text-primary-700 dark:text-primary-300' : 'text-gray-400 dark:text-gray-500'}`} />
               {item.name}
             </button>
           )
@@ -52,15 +52,15 @@ export function Sidebar({ mobileOpen, setMobileOpen, activeTab = 'Products', set
       {/* Mobile sidebar */}
       <div className={`lg:hidden fixed inset-0 z-40 transition-opacity ${mobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setMobileOpen(false)} />
-        <div className={`fixed inset-y-0 left-0 flex flex-col w-64 bg-white transform transition-transform ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-          <div className="flex items-center justify-between px-4 py-6 border-b border-gray-100">
+        <div className={`fixed inset-y-0 left-0 flex flex-col w-64 bg-white dark:bg-gray-900 transform transition-transform ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <div className="flex items-center justify-between px-4 py-6 border-b border-gray-100 dark:border-gray-800">
             <div className="flex items-center space-x-2">
               <Package className="w-8 h-8 text-primary-600" />
-              <span className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '1.25rem' }}>
+              <span className="text-xl font-bold text-gray-900 dark:text-gray-100" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '1.25rem' }}>
                 inspofashions
               </span>
             </div>
-            <button onClick={() => setMobileOpen(false)} className="text-gray-500 hover:text-gray-700">
+            <button onClick={() => setMobileOpen(false)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
               <X className="w-6 h-6" />
             </button>
           </div>
@@ -73,11 +73,11 @@ export function Sidebar({ mobileOpen, setMobileOpen, activeTab = 'Products', set
                   onClick={() => handleNavClick(item.name)}
                   className={`w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
                     isCurrent
-                      ? 'bg-primary-50 text-primary-700'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'bg-primary-50 text-primary-700 dark:bg-gray-800 dark:text-primary-200'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white'
                   }`}
                 >
-                  <item.icon className={`mr-3 h-5 w-5 ${isCurrent ? 'text-primary-700' : 'text-gray-400'}`} />
+                  <item.icon className={`mr-3 h-5 w-5 ${isCurrent ? 'text-primary-700 dark:text-primary-300' : 'text-gray-400 dark:text-gray-500'}`} />
                   {item.name}
                 </button>
               )
@@ -87,7 +87,7 @@ export function Sidebar({ mobileOpen, setMobileOpen, activeTab = 'Products', set
       </div>
 
       {/* Desktop sidebar */}
-      <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-white border-r border-gray-200">
+      <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
         <SidebarContent />
       </div>
     </>

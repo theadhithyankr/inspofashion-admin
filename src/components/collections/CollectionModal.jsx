@@ -97,16 +97,16 @@ export function CollectionModal({ isOpen, onClose, mode, collection, onSuccess }
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm">
+          <div className="bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-200 p-3 rounded-md text-sm">
             {error}
           </div>
         )}
 
         {/* Image Upload */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Collection Image</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Collection Image</label>
           <div className="flex items-start space-x-4">
-            <div className="relative h-24 w-24 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
+            <div className="relative h-24 w-24 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700">
               {imagePreview ? (
                 <>
                   <img src={imagePreview} alt="Preview" className="h-full w-full object-cover" />
@@ -117,9 +117,9 @@ export function CollectionModal({ isOpen, onClose, mode, collection, onSuccess }
                       setImagePreview('')
                       setFormData({ ...formData, image_url: '' })
                     }}
-                    className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm hover:bg-gray-100"
+                    className="absolute top-1 right-1 bg-white dark:bg-gray-900 rounded-full p-1 shadow-sm hover:bg-gray-100 dark:hover:bg-gray-800"
                   >
-                    <X className="w-3 h-3 text-gray-600" />
+                    <X className="w-3 h-3 text-gray-600 dark:text-gray-300" />
                   </button>
                 </>
               ) : (
@@ -128,7 +128,7 @@ export function CollectionModal({ isOpen, onClose, mode, collection, onSuccess }
             </div>
             <div className="flex-1">
               <label htmlFor="collection-image" className="cursor-pointer">
-                <span className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                <span className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 focus:ring-offset-white dark:focus:ring-offset-gray-900">
                   Select Image
                 </span>
                 <input
@@ -139,7 +139,7 @@ export function CollectionModal({ isOpen, onClose, mode, collection, onSuccess }
                   onChange={handleImageChange}
                 />
               </label>
-              <p className="mt-2 text-xs text-gray-500">JPG, PNG, or WEBP. Max 2MB.</p>
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">JPG, PNG, or WEBP. Max 2MB.</p>
             </div>
           </div>
         </div>
@@ -163,19 +163,19 @@ export function CollectionModal({ isOpen, onClose, mode, collection, onSuccess }
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
             Description
           </label>
           <textarea
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             rows={3}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+            className="w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
             placeholder="Describe this collection..."
           />
         </div>
 
-        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
+        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100 dark:border-gray-800">
           <Button
             type="button"
             variant="secondary"
