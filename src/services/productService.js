@@ -10,6 +10,35 @@ function slugify(value = '') {
     .replace(/(^-|-$)+/g, '')
 }
 
+async function generateUniqueSlug(title, excludeId = null) {
+  let baseSlug = slugify(title)
+  let slug = baseSlug
+  let counter = 1
+
+  // Check if slug already exists
+  while (true) {
+    let query = supabase
+      .from('products')
+      .select('id', { count: 'exact' })
+      .eq('slug', slug)
+
+    if (excludeId) {
+      query = query.neq('id', excludeId)
+    }
+
+    const { count, error } = await query
+
+    if (error) throw error
+    
+    if (count === 0) {
+      return slug
+    }
+
+    slug = `${baseSlug}-${counter}`
+    counter++
+  }
+}
+
 function withSlug(productData) {
   return {
     ...productData,
@@ -29,9 +58,10 @@ export const productService = {
   },
 
   async createProduct(productData) {
+    const slug = await generateUniqueSlug(productData.title)
     const { data, error } = await supabase
       .from('products')
-      .insert([withSlug(productData)])
+      .insert([{ ...productData, slug }])
       .select()
       .single()
 
@@ -40,9 +70,10 @@ export const productService = {
   },
 
   async updateProduct(id, updates) {
+    const slug = await generateUniqueSlug(updates.title, id)
     const { data, error } = await supabase
       .from('products')
-      .update(withSlug(updates))
+      .update({ ...updates, slug })
       .eq('id', id)
       .select()
       .single()
