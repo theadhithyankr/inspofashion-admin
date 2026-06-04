@@ -123,7 +123,7 @@ export function CollectionModal({ isOpen, onClose, mode, collection, onSuccess }
                   </button>
                 </>
               ) : (
-                <Upload className="w-6 h-6 text-gray-400" />
+                <Upload className="w-6 h-6 text-gray-400 dark:text-gray-500" />
               )}
             </div>
             <div className="flex-1">
@@ -170,7 +170,7 @@ export function CollectionModal({ isOpen, onClose, mode, collection, onSuccess }
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             rows={3}
-            className="w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+            className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2"
             placeholder="Describe this collection..."
           />
         </div>

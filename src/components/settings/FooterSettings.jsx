@@ -166,8 +166,8 @@ export function FooterSettings() {
     <div className="p-4 sm:p-6 lg:p-8 max-w-4xl">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Footer Settings</h1>
-          <p className="text-gray-600 mt-2">Manage the storefront footer links, social media, and visibility.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Footer Settings</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Manage the storefront footer links, social media, and visibility.</p>
         </div>
         <Button
           variant="primary"
@@ -180,24 +180,24 @@ export function FooterSettings() {
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6">
+        <div className="bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-200 p-4 rounded-lg mb-6 border border-red-200 dark:border-red-900">
           {error}
         </div>
       )}
 
       {/* General Settings */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Visibility & General</h2>
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-6 mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Visibility & General</h2>
         
-        <div className="flex items-center justify-between py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between py-4 border-b border-gray-100 dark:border-gray-800">
           <div>
-            <h3 className="font-medium text-gray-900">Enable Footer</h3>
-            <p className="text-sm text-gray-500">Toggle whether the entire footer is visible on the storefront.</p>
+            <h3 className="font-medium text-gray-900 dark:text-gray-100">Enable Footer</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Toggle whether the entire footer is visible on the storefront.</p>
           </div>
           <button
             onClick={() => setSettings({...settings, is_visible: !settings.is_visible})}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-              settings.is_visible ? 'bg-primary-600' : 'bg-gray-200'
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 ${
+              settings.is_visible ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'
             }`}
           >
             <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -222,8 +222,8 @@ export function FooterSettings() {
       {settings.is_visible && (
         <>
           {/* Social Links */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Social Media Links</h2>
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-6 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Social Media Links</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input 
                 label="Instagram URL" 
@@ -253,11 +253,11 @@ export function FooterSettings() {
           </div>
 
           {/* Footer Columns (Sections) */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Footer Columns</h2>
-                <p className="text-sm text-gray-500">Add up to 4 columns containing links.</p>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Footer Columns</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Add up to 4 columns containing links.</p>
               </div>
               <Button onClick={handleAddSection} variant="secondary" size="sm" disabled={settings.sections.length >= 4}>
                 <Plus className="w-4 h-4 mr-2" />
@@ -267,7 +267,7 @@ export function FooterSettings() {
 
             <div className="space-y-6">
               {settings.sections.map((section) => (
-                <div key={section.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <div key={section.id} className="border border-gray-200 dark:border-gray-800 rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex-1 mr-4">
                       <Input 
@@ -278,7 +278,7 @@ export function FooterSettings() {
                     </div>
                     <button 
                       onClick={() => handleRemoveSection(section.id)}
-                      className="text-red-500 hover:bg-red-50 p-2 rounded-lg mt-5 transition-colors"
+                      className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900 p-2 rounded-lg mt-5 transition-colors"
                       title="Remove column"
                     >
                       <Trash className="w-5 h-5" />
@@ -287,19 +287,19 @@ export function FooterSettings() {
 
                   <div className="space-y-2">
                     {section.links.map((link, linkIndex) => (
-                      <div key={linkIndex} className="flex gap-2 items-center bg-white p-2 rounded-lg border border-gray-200">
-                        <GripVertical className="w-4 h-4 text-gray-400 cursor-grab" />
+                      <div key={linkIndex} className="flex gap-2 items-center bg-white dark:bg-gray-900 p-2 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <GripVertical className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-grab" />
                         <div className="flex-1 flex flex-col md:flex-row gap-2">
                           <input 
                             type="text" 
-                            className="flex-1 text-sm border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500" 
+                            className="flex-1 text-sm border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" 
                             placeholder="Link Name"
                             value={link.name}
                             onChange={(e) => handleUpdateLink(section.id, linkIndex, 'name', e.target.value)}
                           />
                           <input 
                             type="text" 
-                            className="flex-1 text-sm border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 text-gray-500 font-mono" 
+                            className="flex-1 text-sm border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 text-gray-500 dark:text-gray-400 font-mono bg-white dark:bg-gray-800" 
                             placeholder="URL Path (/collections/...)"
                             value={link.url}
                             onChange={(e) => handleUpdateLink(section.id, linkIndex, 'url', e.target.value)}
@@ -307,7 +307,7 @@ export function FooterSettings() {
                         </div>
                         <button 
                           onClick={() => handleRemoveLink(section.id, linkIndex)}
-                          className="text-gray-400 hover:text-red-500 p-1"
+                          className="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 p-1"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -319,7 +319,7 @@ export function FooterSettings() {
                     onClick={() => handleAddLink(section.id)} 
                     variant="outline" 
                     size="sm" 
-                    className="mt-3 text-sm bg-white"
+                    className="mt-3 text-sm bg-white dark:bg-gray-900"
                   >
                     <Plus className="w-4 h-4 mr-1" />
                     Add Link to Column

@@ -65,20 +65,20 @@ export function HeroImageSettings() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Hero Section Settings</h1>
-        <p className="text-gray-600 mt-2">Customize the main landing section of your storefront.</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Hero Section Settings</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-2">Customize the main landing section of your storefront.</p>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-red-50 border border-red-200 text-red-700 dark:bg-red-950 dark:border-red-900 dark:text-red-200 px-4 py-3 rounded-lg mb-6">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">Text Content</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Text Content</h3>
             <Input
               label="Headline Title"
               value={formData.title}
@@ -102,13 +102,13 @@ export function HeroImageSettings() {
               />
               {formData.button_men && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     Left Button Destination
                   </label>
                   <select
                     value={formData.button_men_url}
                     onChange={(e) => setFormData({ ...formData, button_men_url: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
                   >
                     <option value="" disabled>Select destination...</option>
                     <option value="/">Home Page</option>
@@ -139,13 +139,13 @@ export function HeroImageSettings() {
               />
               {formData.button_women && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     Right Button Destination
                   </label>
                   <select
                     value={formData.button_women_url}
                     onChange={(e) => setFormData({ ...formData, button_women_url: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
                   >
                     <option value="" disabled>Select destination...</option>
                     <option value="/">Home Page</option>
@@ -169,10 +169,10 @@ export function HeroImageSettings() {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">Background Image</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Background Image</h3>
             <div className="mt-2 flex flex-col gap-4">
               {formData.image_url ? (
-                <div className="relative rounded-lg overflow-hidden border border-gray-200">
+                <div className="relative rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
                   <img
                     src={formData.image_url}
                     alt="Hero preview"
@@ -190,8 +190,8 @@ export function HeroImageSettings() {
                   </div>
                 </div>
               ) : (
-                <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-500">
-                  <ImageIcon className="w-12 h-12 mb-2 text-gray-400" />
+                <div className="w-full h-48 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                  <ImageIcon className="w-12 h-12 mb-2 text-gray-400 dark:text-gray-500" />
                   <p>No image selected</p>
                   <Button
                     type="button"
@@ -211,7 +211,7 @@ export function HeroImageSettings() {
                   value={formData.image_url}
                   onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                   placeholder="Or paste an image URL..."
-                  className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm py-2 px-3 border"
+                  className="flex-1 rounded-md border-gray-300 dark:border-gray-700 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm py-2 px-3 border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 />
               </div>
 
@@ -224,7 +224,7 @@ export function HeroImageSettings() {
               />
 
               {uploadingImage && (
-                <div className="flex items-center justify-center text-sm text-gray-500">
+                <div className="flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
                   <Spinner size="sm" className="mr-2" /> Uploading image...
                 </div>
               )}
@@ -232,7 +232,7 @@ export function HeroImageSettings() {
           </div>
         </div>
 
-        <div className="pt-4 flex justify-end gap-3 border-t border-gray-200">
+        <div className="pt-4 flex justify-end gap-3 border-t border-gray-200 dark:border-gray-800">
           <Button type="submit" variant="primary" disabled={saving || uploadingImage}>
             {saving ? <><Spinner size="sm" className="mr-2" /> Saving...</> : 'Save Hero Settings'}
           </Button>

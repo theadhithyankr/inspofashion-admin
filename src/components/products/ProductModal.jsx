@@ -313,7 +313,7 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
             value={formData.description}
             onChange={(e) => handleChange('description', e.target.value)}
             rows={3}
-            className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+            className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
               errors.description ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'
             }`}
             disabled={loading}
@@ -324,11 +324,11 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Price */}
           <Input
-            label="Price"
+            label="Price (₹)"
             type="number"
             step="0.01"
             min="0"
-            placeholder="29.99"
+            placeholder="999"
             value={formData.price}
             onChange={(e) => handleChange('price', e.target.value)}
             error={errors.price}
@@ -337,7 +337,7 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
           />
 
           <Input
-            label="Compare-at Price"
+            label="Compare-at Price (₹)"
             type="number"
             step="0.01"
             min="0"
@@ -359,7 +359,7 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
             <select
               value={formData.category}
               onChange={(e) => handleChange('category', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+              className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
                 errors.category ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'
               }`}
               required
@@ -443,33 +443,33 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
               Fit Notes
             </label>
             <textarea
               value={formData.fit_notes}
               onChange={(e) => handleChange('fit_notes', e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent border-gray-300"
+              className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent border-gray-300 dark:border-gray-700"
               disabled={loading}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
               Care Instructions
             </label>
             <textarea
               value={formData.care_instructions}
               onChange={(e) => handleChange('care_instructions', e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent border-gray-300"
+              className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent border-gray-300 dark:border-gray-700"
               disabled={loading}
             />
           </div>
         </div>
 
-        <label className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+        <label className="flex items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4">
           <input
             type="checkbox"
             checked={formData.is_featured}
@@ -478,8 +478,8 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
             className="h-4 w-4"
           />
           <span>
-            <span className="block text-sm font-medium text-gray-900">Feature on storefront</span>
-            <span className="text-xs text-gray-500">Featured products appear first in the premium storefront edit.</span>
+            <span className="block text-sm font-medium text-gray-900 dark:text-gray-100">Feature on storefront</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">Featured products appear first in the premium storefront edit.</span>
           </span>
         </label>
 

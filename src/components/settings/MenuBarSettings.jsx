@@ -51,19 +51,19 @@ export function MenuBarSettings() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Menu Bar Settings</h1>
-        <p className="text-gray-600 mt-2">Configure the top announcement bar and navigation links.</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Menu Bar Settings</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-2">Configure the top announcement bar and navigation links.</p>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-red-50 border border-red-200 text-red-700 dark:bg-red-950 dark:border-red-900 dark:text-red-200 px-4 py-3 rounded-lg mb-6">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 space-y-6">
         <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Announcement Bar</h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Announcement Bar</h3>
           <Input
             label="Announcement Text"
             value={formData.announcement_text}
@@ -72,9 +72,9 @@ export function MenuBarSettings() {
           />
         </div>
 
-        <div className="pt-6 border-t border-gray-200">
+        <div className="pt-6 border-t border-gray-200 dark:border-gray-800">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">Navigation Links</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Navigation Links</h3>
             <Button type="button" variant="secondary" size="sm" onClick={addLink}>
               <Plus className="w-4 h-4 mr-2" />
               Add Link
@@ -83,7 +83,7 @@ export function MenuBarSettings() {
 
           <div className="space-y-4">
             {formData.links.map((link, index) => (
-              <div key={index} className="flex flex-col sm:flex-row gap-4 items-start sm:items-end bg-gray-50 p-4 rounded-lg">
+              <div key={index} className="flex flex-col sm:flex-row gap-4 items-start sm:items-end bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                 <div className="flex-1 w-full text-left">
                   <Input
                     label="Link Name"
@@ -94,14 +94,14 @@ export function MenuBarSettings() {
                   />
                 </div>
                 <div className="flex-1 w-full text-left">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     Destination <span className="text-red-500 ml-1">*</span>
                   </label>
                   <select
                     value={link.url}
                     onChange={(e) => handleLinkChange(index, 'url', e.target.value)}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white h-[42px]"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-[42px]"
                   >
                     <option value="" disabled>Select a destination...</option>
                     <option value="/">Home Page</option>
@@ -126,14 +126,14 @@ export function MenuBarSettings() {
                 <button
                   type="button"
                   onClick={() => removeLink(index)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded mt-2 sm:mt-0"
+                  className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded mt-2 sm:mt-0"
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
               </div>
             ))}
             {formData.links.length === 0 && (
-              <p className="text-gray-500 text-sm italic">No navigation links added yet.</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm italic">No navigation links added yet.</p>
             )}
           </div>
         </div>

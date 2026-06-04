@@ -98,7 +98,7 @@ export function ProductTable({ products, onEdit, onDelete, onToggle }) {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                  ${parseFloat(product.price).toFixed(2)}
+                  ₹{parseFloat(product.price).toFixed(2)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                   {product.sizes.join(', ')}
@@ -150,7 +150,7 @@ export function ProductTable({ products, onEdit, onDelete, onToggle }) {
               <div className="flex-1 min-w-0">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 truncate">{product.title}</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{product.category}</p>
-                <p className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-1">${parseFloat(product.price).toFixed(2)}</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-1">₹{parseFloat(product.price).toFixed(2)}</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Sizes: {product.sizes.join(', ')}</p>
               </div>
             </div>
