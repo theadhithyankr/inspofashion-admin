@@ -1,5 +1,22 @@
 import { supabase } from '../lib/supabase'
 
+function slugify(value = '') {
+  return value
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '')
+}
+
+function withSlug(productData) {
+  return {
+    ...productData,
+    slug: productData.slug || slugify(productData.title),
+  }
+}
+
 export const productService = {
   async getAllProducts() {
     const { data, error } = await supabase
@@ -14,7 +31,7 @@ export const productService = {
   async createProduct(productData) {
     const { data, error } = await supabase
       .from('products')
-      .insert([productData])
+      .insert([withSlug(productData)])
       .select()
       .single()
 
@@ -25,7 +42,7 @@ export const productService = {
   async updateProduct(id, updates) {
     const { data, error } = await supabase
       .from('products')
-      .update(updates)
+      .update(withSlug(updates))
       .eq('id', id)
       .select()
       .single()
@@ -60,7 +77,7 @@ export const productService = {
     const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`
     const filePath = fileName
 
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from('product-images')
       .upload(filePath, file)
 

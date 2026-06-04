@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Package, Menu as MenuIcon, X, Layers, Image as ImageIcon, Layout, Settings } from 'lucide-react'
 
 export function Sidebar({ mobileOpen, setMobileOpen, activeTab = 'Products', setActiveTab = () => {} }) {

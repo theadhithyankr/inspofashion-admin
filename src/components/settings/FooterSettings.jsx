@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, Trash, GripVertical, Check, Info, X } from 'lucide-react'
+import { Plus, Trash, GripVertical, Check, X } from 'lucide-react'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { storeSettingsService } from '../../services/storeSettingsService'
@@ -83,7 +83,7 @@ export function FooterSettings() {
       await storeSettingsService.updateSettings('footer_settings', settings)
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
-    } catch (error) {
+    } catch {
       setError('Failed to save settings. Please try again.')
     } finally {
       setLoading(false)
@@ -266,7 +266,7 @@ export function FooterSettings() {
             </div>
 
             <div className="space-y-6">
-              {settings.sections.map((section, index) => (
+              {settings.sections.map((section) => (
                 <div key={section.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex-1 mr-4">

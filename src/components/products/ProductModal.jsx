@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Upload, X, ImageOff } from 'lucide-react'
+import { Upload, X } from 'lucide-react'
 import { Modal } from '../ui/Modal'
 import { Input } from '../ui/Input'
 import { Button } from '../ui/Button'
@@ -16,9 +16,15 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
     title: '',
     description: '',
     price: '',
+    compare_at_price: '',
     category: '',
     sizes: [],
     colors: [],
+    material: '',
+    fit_notes: '',
+    care_instructions: '',
+    is_featured: false,
+    tags: '',
   })
   
   // Track images: array of { file?: File, preview?: string, existingUrl?: string }
@@ -35,9 +41,15 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
         title: product.title || '',
         description: product.description || '',
         price: product.price || '',
+        compare_at_price: product.compare_at_price || '',
         category: product.category || '',
         sizes: product.sizes || [],
         colors: product.colors || [],
+        material: product.material || '',
+        fit_notes: product.fit_notes || '',
+        care_instructions: product.care_instructions || '',
+        is_featured: Boolean(product.is_featured),
+        tags: (product.tags || []).join(', '),
       })
       // Load existing images
       const initialImages = [];
@@ -58,9 +70,15 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
       title: '',
       description: '',
       price: '',
+      compare_at_price: '',
       category: '',
       sizes: [],
       colors: [],
+      material: '',
+      fit_notes: '',
+      care_instructions: '',
+      is_featured: false,
+      tags: '',
     })
     setImages([])
     setImagesToRemove([])
@@ -173,9 +191,18 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
         title: formData.title.trim(),
         description: formData.description.trim(),
         price: parseFloat(formData.price),
+        compare_at_price: formData.compare_at_price ? parseFloat(formData.compare_at_price) : null,
         category: formData.category.trim(),
         sizes: formData.sizes,
         colors: formData.colors,
+        material: formData.material.trim(),
+        fit_notes: formData.fit_notes.trim(),
+        care_instructions: formData.care_instructions.trim(),
+        is_featured: formData.is_featured,
+        tags: formData.tags
+          .split(',')
+          .map(tag => tag.trim())
+          .filter(Boolean),
         images: finalImagesUrls,
         image_url: finalImagesUrls[0], // primary image
       }
@@ -309,6 +336,21 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
             disabled={loading}
           />
 
+          <Input
+            label="Compare-at Price"
+            type="number"
+            step="0.01"
+            min="0"
+            placeholder="Optional"
+            value={formData.compare_at_price}
+            onChange={(e) => handleChange('compare_at_price', e.target.value)}
+            error={errors.compare_at_price}
+            disabled={loading}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
           {/* Category */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -380,6 +422,66 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
             ))}
           </div>
         </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Input
+            label="Material"
+            placeholder="e.g., Cotton linen blend"
+            value={formData.material}
+            onChange={(e) => handleChange('material', e.target.value)}
+            disabled={loading}
+          />
+
+          <Input
+            label="Tags"
+            placeholder="Comma separated: summer, relaxed fit"
+            value={formData.tags}
+            onChange={(e) => handleChange('tags', e.target.value)}
+            disabled={loading}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Fit Notes
+            </label>
+            <textarea
+              value={formData.fit_notes}
+              onChange={(e) => handleChange('fit_notes', e.target.value)}
+              rows={3}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent border-gray-300"
+              disabled={loading}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Care Instructions
+            </label>
+            <textarea
+              value={formData.care_instructions}
+              onChange={(e) => handleChange('care_instructions', e.target.value)}
+              rows={3}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent border-gray-300"
+              disabled={loading}
+            />
+          </div>
+        </div>
+
+        <label className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+          <input
+            type="checkbox"
+            checked={formData.is_featured}
+            onChange={(e) => handleChange('is_featured', e.target.checked)}
+            disabled={loading}
+            className="h-4 w-4"
+          />
+          <span>
+            <span className="block text-sm font-medium text-gray-900">Feature on storefront</span>
+            <span className="text-xs text-gray-500">Featured products appear first in the premium storefront edit.</span>
+          </span>
+        </label>
 
         {/* Progress indicator */}
         {uploadProgress && (

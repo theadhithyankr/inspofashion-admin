@@ -11,6 +11,10 @@ export function validateProduct(data) {
     errors.description = 'Description must be less than 500 characters'
   }
 
+  if (data.compare_at_price && parseFloat(data.compare_at_price) <= parseFloat(data.price || 0)) {
+    errors.compare_at_price = 'Compare-at price must be higher than the sale price'
+  }
+
   if (!data.price || isNaN(data.price) || parseFloat(data.price) <= 0) {
     errors.price = 'Price must be a positive number'
   }
