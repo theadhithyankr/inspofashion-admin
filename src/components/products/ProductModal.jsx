@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Upload, X } from 'lucide-react'
+import { Upload, X, Search } from 'lucide-react'
 import { Modal } from '../ui/Modal'
 import { Input } from '../ui/Input'
 import { Button } from '../ui/Button'
@@ -8,6 +8,7 @@ import { validateProduct, validateImageFile } from '../../utils/validators'
 import { useCollections } from '../../hooks/useCollections'
 
 const COMMON_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']
+const DEFAULT_COLORS = ['White', 'Black', 'Gray', 'Navy', 'Red', 'Blue', 'Green', 'Yellow', 'Pink', 'Purple', 'Beige', 'Brown', 'Olive']
 
 export function ProductModal({ isOpen, onClose, mode = 'create', product = null, onSuccess }) {
   const { collections } = useCollections()
@@ -18,6 +19,8 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
     compare_at_price: '',
     category: '',
     sizes: [],
+    colors: [],
+    quantity: '',
     material: '',
     fit_notes: '',
     care_instructions: '',
@@ -32,6 +35,10 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(null)
+  const [availableColors, setAvailableColors] = useState(DEFAULT_COLORS)
+  const [colorSearch, setColorSearch] = useState('')
+  const [showColorSuggestions, setShowColorSuggestions] = useState(false)
+  const [newColor, setNewColor] = useState('')
 
   useEffect(() => {
     if (mode === 'edit' && product) {
@@ -42,6 +49,8 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
         compare_at_price: product.compare_at_price || '',
         category: product.category || '',
         sizes: product.sizes || [],
+        colors: product.colors || [],
+        quantity: product.quantity || '',
         material: product.material || '',
         fit_notes: product.fit_notes || '',
         care_instructions: product.care_instructions || '',
@@ -70,6 +79,8 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
       compare_at_price: '',
       category: '',
       sizes: [],
+      colors: [],
+      quantity: '',
       material: '',
       fit_notes: '',
       care_instructions: '',
@@ -80,6 +91,42 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
     setImagesToRemove([])
     setErrors({})
     setUploadProgress(null)
+    setColorSearch('')
+    setShowColorSuggestions(false)
+    setNewColor('')
+  }
+
+  // Load colors from localStorage on component mount
+  useEffect(() => {
+    const storedColors = localStorage.getItem('productColors')
+    if (storedColors) {
+      try {
+        const colors = JSON.parse(storedColors)
+        setAvailableColors(colors)
+      } catch (e) {
+        setAvailableColors(DEFAULT_COLORS)
+      }
+    }
+  }, [])
+
+  const saveColorsToStorage = (colors) => {
+    localStorage.setItem('productColors', JSON.stringify(colors))
+  }
+
+  const addNewColor = (colorName) => {
+    if (!colorName.trim()) return
+    if (availableColors.includes(colorName.trim())) return
+
+    const newColors = [...availableColors, colorName.trim()]
+    setAvailableColors(newColors)
+    saveColorsToStorage(newColors)
+    setNewColor('')
+  }
+
+  const getFilteredColors = () => {
+    return availableColors.filter(color =>
+      color.toLowerCase().includes(colorSearch.toLowerCase())
+    )
   }
 
   const handleChange = (field, value) => {
@@ -134,6 +181,18 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
     }
   }
 
+  const toggleColor = (color) => {
+    setFormData((prev) => ({
+      ...prev,
+      colors: prev.colors.includes(color)
+        ? prev.colors.filter((c) => c !== color)
+        : [...prev.colors, color],
+    }))
+    if (errors.colors) {
+      setErrors((prev) => ({ ...prev, colors: null }))
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -146,6 +205,23 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
     // Check if we have an image (new file or existing)
     if (images.length === 0) {
       setErrors((prev) => ({ ...prev, image: 'At least one image is required' }))
+      return
+    }
+
+    // Check if colors are selected
+    if (formData.colors.length === 0) {
+      setErrors((prev) => ({ ...prev, colors: 'At least one color must be selected' }))
+      return
+    }
+
+    // Check if quantity is provided
+    if (!formData.quantity || formData.quantity === '') {
+      setErrors((prev) => ({ ...prev, quantity: 'Quantity is required' }))
+      return
+    }
+
+    if (parseInt(formData.quantity) < 0) {
+      setErrors((prev) => ({ ...prev, quantity: 'Quantity cannot be negative' }))
       return
     }
 
@@ -181,6 +257,8 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
         compare_at_price: formData.compare_at_price ? parseFloat(formData.compare_at_price) : null,
         category: formData.category.trim(),
         sizes: formData.sizes,
+        colors: formData.colors,
+        quantity: parseInt(formData.quantity),
         material: formData.material.trim(),
         fit_notes: formData.fit_notes.trim(),
         care_instructions: formData.care_instructions.trim(),
@@ -336,6 +414,23 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Quantity */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+              Quantity <span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="number"
+              min="0"
+              placeholder="e.g., 50"
+              value={formData.quantity}
+              onChange={(e) => handleChange('quantity', e.target.value)}
+              error={errors.quantity}
+              required
+              disabled={loading}
+              helperText={formData.quantity === '0' ? '⚠️ Product will show as SOLD OUT' : 'When 0, product shows as SOLD OUT'}
+            />
+          </div>
 
           {/* Category */}
           <div>
@@ -383,6 +478,117 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
             ))}
           </div>
           {errors.sizes && <p className="mt-1 text-sm text-red-600 dark:text-red-200">{errors.sizes}</p>}
+        </div>
+
+        {/* Colors */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+            Available Colors <span className="text-red-500">*</span>
+          </label>
+
+          {/* Color Search Input */}
+          <div className="mb-4 relative">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search or add new color..."
+                value={colorSearch}
+                onChange={(e) => setColorSearch(e.target.value)}
+                onFocus={() => setShowColorSuggestions(true)}
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                disabled={loading}
+              />
+            </div>
+
+            {/* Color Suggestions Dropdown */}
+            {showColorSuggestions && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+                <div className="p-2 space-y-1">
+                  {getFilteredColors().length > 0 ? (
+                    getFilteredColors().map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => {
+                          toggleColor(color)
+                          setColorSearch('')
+                          setShowColorSuggestions(false)
+                        }}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                          formData.colors?.includes(color)
+                            ? 'bg-primary-600 text-white'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        }`}
+                      >
+                        ✓ {color}
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
+                      No matching colors
+                    </div>
+                  )}
+
+                  {/* Add New Color Option */}
+                  {colorSearch.trim() && !getFilteredColors().some(c => c.toLowerCase() === colorSearch.toLowerCase()) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        addNewColor(colorSearch)
+                        toggleColor(colorSearch.trim())
+                        setColorSearch('')
+                        setShowColorSuggestions(false)
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-lg text-sm bg-primary-50 dark:bg-gray-700 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-gray-600 border border-primary-200 dark:border-gray-600"
+                    >
+                      + Add "{colorSearch}"
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Selected Colors Display */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {formData.colors.map((color) => (
+              <div
+                key={color}
+                className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200"
+              >
+                <span className="text-sm font-medium">{color}</span>
+                <button
+                  type="button"
+                  onClick={() => toggleColor(color)}
+                  className="text-primary-600 dark:text-primary-400 hover:text-primary-900 dark:hover:text-primary-100"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Available Colors Grid */}
+          <div className="flex flex-wrap gap-2">
+            {availableColors.map((color) => (
+              <button
+                key={color}
+                type="button"
+                onClick={() => toggleColor(color)}
+                disabled={loading}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  formData.colors?.includes(color)
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700'
+                } disabled:opacity-50`}
+              >
+                {color}
+              </button>
+            ))}
+          </div>
+
+          {errors.colors && <p className="mt-2 text-sm text-red-600 dark:text-red-200">{errors.colors}</p>}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
