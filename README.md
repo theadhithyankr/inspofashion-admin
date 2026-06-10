@@ -33,6 +33,21 @@ npm run build
 npm run preview
 ```
 
+## Color Variant Image Mapping
+
+Products store their color-specific images in the `color_image_map` JSONB column:
+
+```json
+{
+  "Red": ["https://example.com/red-front.webp", "https://example.com/red-back.webp"],
+  "Blue": ["https://example.com/blue-front.webp"]
+}
+```
+
+Apply `supabase/migrations/20260610000000_add_color_image_map_to_products.sql` to the Supabase project before saving products with this feature.
+
+The storefront can use `getProductImagesForColor(product, selectedColor)` from `src/utils/productVariants.js`. It returns the selected color's images and falls back to the existing `images` or `image_url` fields for legacy products.
+
 ## Screenshots and Media
 - Existing asset: src/assets/hero.png
 

@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase'
+import { normalizeColorImageMap } from '../utils/productVariants'
 
 function slugify(value = '') {
   return value
@@ -39,10 +40,10 @@ async function generateUniqueSlug(title, excludeId = null) {
   }
 }
 
-function withSlug(productData) {
+function normalizeProductData(productData) {
   return {
     ...productData,
-    slug: productData.slug || slugify(productData.title),
+    color_image_map: normalizeColorImageMap(productData.color_image_map),
   }
 }
 
@@ -61,7 +62,7 @@ export const productService = {
     const slug = await generateUniqueSlug(productData.title)
     const { data, error } = await supabase
       .from('products')
-      .insert([{ ...productData, slug }])
+      .insert([{ ...normalizeProductData(productData), slug }])
       .select()
       .single()
 
@@ -73,7 +74,7 @@ export const productService = {
     const slug = await generateUniqueSlug(updates.title, id)
     const { data, error } = await supabase
       .from('products')
-      .update({ ...updates, slug })
+      .update({ ...normalizeProductData(updates), slug })
       .eq('id', id)
       .select()
       .single()

@@ -1,14 +1,23 @@
 import { useState, useEffect } from 'react'
-import { Upload, X, Search } from 'lucide-react'
+import { Check, Upload, X, Search } from 'lucide-react'
 import { Modal } from '../ui/Modal'
 import { Input } from '../ui/Input'
 import { Button } from '../ui/Button'
 import { productService } from '../../services/productService'
 import { validateProduct, validateImageFile } from '../../utils/validators'
+import { normalizeColorImageMap } from '../../utils/productVariants'
 import { useCollections } from '../../hooks/useCollections'
 
 const COMMON_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']
 const DEFAULT_COLORS = ['White', 'Black', 'Gray', 'Navy', 'Red', 'Blue', 'Green', 'Yellow', 'Pink', 'Purple', 'Beige', 'Brown', 'Olive']
+
+function createImageId() {
+  return globalThis.crypto?.randomUUID?.() || `image-${Date.now()}-${Math.random().toString(36).slice(2)}`
+}
+
+function getImageId(image) {
+  return image.id || image.existingUrl
+}
 
 export function ProductModal({ isOpen, onClose, mode = 'create', product = null, onSuccess }) {
   const { collections } = useCollections()
@@ -28,8 +37,9 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
     tags: '',
   })
   
-  // Track images: array of { file?: File, preview?: string, existingUrl?: string }
+  // Track images before uploads so color mappings can point to stable local IDs.
   const [images, setImages] = useState([])
+  const [colorImageMap, setColorImageMap] = useState({})
   const [imagesToRemove, setImagesToRemove] = useState([]) // Array of urls to delete from storage
 
   const [errors, setErrors] = useState({})
@@ -38,7 +48,6 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
   const [availableColors, setAvailableColors] = useState(DEFAULT_COLORS)
   const [colorSearch, setColorSearch] = useState('')
   const [showColorSuggestions, setShowColorSuggestions] = useState(false)
-  const [newColor, setNewColor] = useState('')
 
   useEffect(() => {
     if (mode === 'edit' && product) {
@@ -58,13 +67,25 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
         tags: (product.tags || []).join(', '),
       })
       // Load existing images
-      const initialImages = [];
+      const initialImages = []
       if (product.images && product.images.length > 0) {
-        product.images.forEach(url => initialImages.push({ existingUrl: url }))
+        product.images.forEach(url => initialImages.push({ id: url, existingUrl: url }))
       } else if (product.image_url) {
-        initialImages.push({ existingUrl: product.image_url }) // Fallback for old data
+        initialImages.push({ id: product.image_url, existingUrl: product.image_url }) // Fallback for old data
       }
+
+      const savedColorImageMap = normalizeColorImageMap(product.color_image_map)
+      const availableImageIds = new Set(initialImages.map(getImageId))
+      const primaryImageId = getImageId(initialImages[0] || {})
+      const initialColorImageMap = Object.fromEntries(
+        (product.colors || []).map((color) => {
+          const savedImageIds = (savedColorImageMap[color] || []).filter((url) => availableImageIds.has(url))
+          return [color, savedImageIds.length ? savedImageIds : (primaryImageId ? [primaryImageId] : [])]
+        })
+      )
+
       setImages(initialImages)
+      setColorImageMap(initialColorImageMap)
       setImagesToRemove([])
     } else {
       resetForm()
@@ -88,12 +109,12 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
       tags: '',
     })
     setImages([])
+    setColorImageMap({})
     setImagesToRemove([])
     setErrors({})
     setUploadProgress(null)
     setColorSearch('')
     setShowColorSuggestions(false)
-    setNewColor('')
   }
 
   // Load colors from localStorage on component mount
@@ -103,7 +124,7 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
       try {
         const colors = JSON.parse(storedColors)
         setAvailableColors(colors)
-      } catch (e) {
+      } catch {
         setAvailableColors(DEFAULT_COLORS)
       }
     }
@@ -120,7 +141,6 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
     const newColors = [...availableColors, colorName.trim()]
     setAvailableColors(newColors)
     saveColorsToStorage(newColors)
-    setNewColor('')
   }
 
   const getFilteredColors = () => {
@@ -155,18 +175,35 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
     validFiles.forEach(file => {
       const reader = new FileReader()
       reader.onloadend = () => {
-        setImages(prev => [...prev, { file, preview: reader.result }])
+        const id = createImageId()
+        setImages(prev => [...prev, { id, file, preview: reader.result }])
+        setColorImageMap((prev) => {
+          const next = { ...prev }
+          formData.colors.forEach((color) => {
+            if (!next[color]?.length) {
+              next[color] = [id]
+            }
+          })
+          return next
+        })
       }
       reader.readAsDataURL(file)
     })
   }
 
   const handleRemoveImage = (index) => {
-    const img = images[index];
+    const img = images[index]
+    const imageId = getImageId(img)
     if (img.existingUrl) {
       setImagesToRemove(prev => [...prev, img.existingUrl])
     }
     setImages(prev => prev.filter((_, i) => i !== index))
+    setColorImageMap((prev) => Object.fromEntries(
+      Object.entries(prev).map(([color, imageIds]) => [
+        color,
+        imageIds.filter((id) => id !== imageId),
+      ])
+    ))
   }
 
   const toggleSize = (size) => {
@@ -182,14 +219,44 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
   }
 
   const toggleColor = (color) => {
+    const isSelected = formData.colors.includes(color)
+
     setFormData((prev) => ({
       ...prev,
-      colors: prev.colors.includes(color)
+      colors: isSelected
         ? prev.colors.filter((c) => c !== color)
         : [...prev.colors, color],
     }))
+    setColorImageMap((prev) => {
+      if (isSelected) {
+        const remaining = { ...prev }
+        delete remaining[color]
+        return remaining
+      }
+
+      const primaryImageId = images[0] ? getImageId(images[0]) : null
+      return {
+        ...prev,
+        [color]: prev[color]?.length ? prev[color] : (primaryImageId ? [primaryImageId] : []),
+      }
+    })
     if (errors.colors) {
       setErrors((prev) => ({ ...prev, colors: null }))
+    }
+  }
+
+  const toggleColorImage = (color, imageId) => {
+    setColorImageMap((prev) => {
+      const assignedImages = prev[color] || []
+      return {
+        ...prev,
+        [color]: assignedImages.includes(imageId)
+          ? assignedImages.filter((id) => id !== imageId)
+          : [...assignedImages, imageId],
+      }
+    })
+    if (errors.color_image_map) {
+      setErrors((prev) => ({ ...prev, color_image_map: null }))
     }
   }
 
@@ -214,6 +281,18 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
       return
     }
 
+    const currentImageIds = new Set(images.map(getImageId))
+    const unmappedColors = formData.colors.filter(
+      (color) => !(colorImageMap[color] || []).some((imageId) => currentImageIds.has(imageId))
+    )
+    if (unmappedColors.length > 0) {
+      setErrors((prev) => ({
+        ...prev,
+        color_image_map: `Assign at least one image to: ${unmappedColors.join(', ')}`,
+      }))
+      return
+    }
+
     // Check if quantity is provided
     if (!formData.quantity || formData.quantity === '') {
       setErrors((prev) => ({ ...prev, quantity: 'Quantity is required' }))
@@ -230,6 +309,7 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
 
     try {
       const finalImagesUrls = [];
+      const imageUrlById = {}
       let currentUploadNum = 1;
       const filesToUpload = images.filter(img => img.file);
 
@@ -238,17 +318,23 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
       for (const img of images) {
         if (img.existingUrl) {
           finalImagesUrls.push(img.existingUrl);
+          imageUrlById[getImageId(img)] = img.existingUrl
         } else if (img.file) {
           const url = await productService.uploadImage(img.file);
           finalImagesUrls.push(url);
+          imageUrlById[getImageId(img)] = url
           setUploadProgress(currentUploadNum < filesToUpload.length ? `Uploading images (${currentUploadNum++}/${filesToUpload.length})...` : (mode === 'create' ? 'Creating product...' : 'Updating product...'));
         }
       }
 
-      // Delete removed images in the background
-      imagesToRemove.forEach(url => {
-        productService.deleteImage(url).catch(e => console.error("Failed to delete unused image", url, e))
-      });
+      const finalColorImageMap = Object.fromEntries(
+        formData.colors.map((color) => [
+          color,
+          (colorImageMap[color] || [])
+            .map((imageId) => imageUrlById[imageId])
+            .filter(Boolean),
+        ])
+      )
 
       const productData = {
         title: formData.title.trim(),
@@ -269,6 +355,7 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
           .filter(Boolean),
         images: finalImagesUrls,
         image_url: finalImagesUrls[0], // primary image
+        color_image_map: finalColorImageMap,
       }
 
       if (mode === 'create') {
@@ -276,6 +363,10 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
       } else {
         await onSuccess(product.id, productData)
       }
+
+      imagesToRemove.forEach(url => {
+        productService.deleteImage(url).catch(e => console.error('Failed to delete unused image', url, e))
+      })
 
       onClose()
       resetForm()
@@ -589,6 +680,81 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
           </div>
 
           {errors.colors && <p className="mt-2 text-sm text-red-600 dark:text-red-200">{errors.colors}</p>}
+        </div>
+
+        {/* Color variant image mapping */}
+        <div>
+          <div className="mb-3">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+              Color Variant Images <span className="text-red-500">*</span>
+            </label>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Select the images the storefront should show when a customer chooses each color.
+            </p>
+          </div>
+
+          {formData.colors.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 px-4 py-5 text-sm text-gray-500 dark:text-gray-400">
+              Select at least one color to configure its product images.
+            </div>
+          ) : images.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 px-4 py-5 text-sm text-gray-500 dark:text-gray-400">
+              Upload product images before assigning them to colors.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {formData.colors.map((color) => (
+                <div
+                  key={color}
+                  className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-4"
+                >
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{color}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {(colorImageMap[color] || []).length} selected
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    {images.map((img, index) => {
+                      const imageId = getImageId(img)
+                      const isAssigned = (colorImageMap[color] || []).includes(imageId)
+
+                      return (
+                        <button
+                          key={imageId}
+                          type="button"
+                          onClick={() => toggleColorImage(color, imageId)}
+                          disabled={loading}
+                          className={`relative h-20 w-20 overflow-hidden rounded-lg border-2 transition-colors ${
+                            isAssigned
+                              ? 'border-primary-600 ring-2 ring-primary-200 dark:ring-primary-900'
+                              : 'border-transparent opacity-60 hover:opacity-100'
+                          } disabled:cursor-not-allowed disabled:opacity-50`}
+                          aria-pressed={isAssigned}
+                          title={`${isAssigned ? 'Remove' : 'Assign'} image ${index + 1} ${isAssigned ? 'from' : 'to'} ${color}`}
+                        >
+                          <img
+                            src={img.preview || img.existingUrl}
+                            alt={`${color} option ${index + 1}`}
+                            className="h-full w-full object-cover"
+                          />
+                          {isAssigned && (
+                            <span className="absolute right-1 top-1 rounded-full bg-primary-600 p-1 text-white shadow">
+                              <Check className="h-3 w-3" />
+                            </span>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {errors.color_image_map && (
+            <p className="mt-2 text-sm text-red-600 dark:text-red-200">{errors.color_image_map}</p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
