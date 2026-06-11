@@ -41,13 +41,10 @@ export function useStoreSettings(key) {
 
   const uploadImage = async (file, path) => {
     try {
-      setLoading(true) // Treat image upload as a major operation
       return await storeSettingsService.uploadImage(file, path)
     } catch (err) {
       setError(err.message)
       throw err
-    } finally {
-      setLoading(false)
     }
   }
 

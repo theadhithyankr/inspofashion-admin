@@ -98,8 +98,8 @@ export function ValuePropsSettings() {
           </div>
           <button
             onClick={() => setFormData({...formData, is_visible: !formData.is_visible})}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 ${
-              formData.is_visible ? 'bg-brand-600' : 'bg-gray-200 dark:bg-gray-700'
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 ${
+              formData.is_visible ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'
             }`}
           >
             <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -135,7 +135,7 @@ export function ValuePropsSettings() {
                       value={prop.description}
                       onChange={(e) => handlePropChange(index, 'description', e.target.value)}
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
                       required
                     />
                   </div>

@@ -10,6 +10,7 @@ export function MenuBarSettings() {
   const { settings, loading, saving, error, saveSettings } = useStoreSettings('menu_bar')
   const { collections } = useCollections()
   const [formData, setFormData] = useState({ announcement_text: '', links: [] })
+  const [success, setSuccess] = useState(false)
 
   useEffect(() => {
     if (settings) {
@@ -40,7 +41,8 @@ export function MenuBarSettings() {
     e.preventDefault()
     try {
       await saveSettings(formData)
-      alert('Settings saved successfully!')
+      setSuccess(true)
+      setTimeout(() => setSuccess(false), 3000)
     } catch (err) {
       console.error(err)
     }
@@ -101,7 +103,7 @@ export function MenuBarSettings() {
                     value={link.url}
                     onChange={(e) => handleLinkChange(index, 'url', e.target.value)}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-[42px]"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 h-[42px]"
                   >
                     <option value="" disabled>Select a destination...</option>
                     <option value="/">Home Page</option>
@@ -140,7 +142,7 @@ export function MenuBarSettings() {
 
         <div className="pt-4 flex justify-end">
           <Button type="submit" variant="primary" disabled={saving}>
-            {saving ? <><Spinner size="sm" className="mr-2" /> Saving...</> : 'Save Menu Settings'}
+            {saving ? <><Spinner size="sm" className="mr-2" /> Saving...</> : success ? 'Saved!' : 'Save Menu Settings'}
           </Button>
         </div>
       </form>

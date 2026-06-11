@@ -26,7 +26,7 @@ export function useCollections() {
   const createCollection = async (collectionData) => {
     try {
       const newCollection = await collectionService.createCollection(collectionData)
-      setCollections([newCollection, ...collections])
+      setCollections(prev => [newCollection, ...prev])
       return newCollection
     } catch (err) {
       setError(err.message)
@@ -37,7 +37,7 @@ export function useCollections() {
   const updateCollection = async (id, collectionData) => {
     try {
       const updatedCollection = await collectionService.updateCollection(id, collectionData)
-      setCollections(collections.map(c => c.id === id ? updatedCollection : c))
+      setCollections(prev => prev.map(c => c.id === id ? updatedCollection : c))
       return updatedCollection
     } catch (err) {
       setError(err.message)
@@ -48,7 +48,7 @@ export function useCollections() {
   const deleteCollection = async (id) => {
     try {
       await collectionService.deleteCollection(id)
-      setCollections(collections.filter(c => c.id !== id))
+      setCollections(prev => prev.filter(c => c.id !== id))
     } catch (err) {
       setError(err.message)
       throw err
@@ -58,7 +58,7 @@ export function useCollections() {
   const toggleActive = async (id, currentStatus) => {
     try {
       const updatedCollection = await collectionService.toggleActive(id, currentStatus)
-      setCollections(collections.map(c => c.id === id ? updatedCollection : c))
+      setCollections(prev => prev.map(c => c.id === id ? updatedCollection : c))
     } catch (err) {
       setError(err.message)
       throw err

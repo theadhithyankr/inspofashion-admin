@@ -26,13 +26,13 @@ export function useProducts() {
 
   const createProduct = async (productData) => {
     const newProduct = await productService.createProduct(productData)
-    setProducts([newProduct, ...products])
+    setProducts(prev => [newProduct, ...prev])
     return newProduct
   }
 
   const updateProduct = async (id, updates) => {
     const updated = await productService.updateProduct(id, updates)
-    setProducts(products.map(p => p.id === id ? updated : p))
+    setProducts(prev => prev.map(p => p.id === id ? updated : p))
     return updated
   }
 
@@ -41,12 +41,12 @@ export function useProducts() {
     if (imageUrl) {
       await productService.deleteImage(imageUrl)
     }
-    setProducts(products.filter(p => p.id !== id))
+    setProducts(prev => prev.filter(p => p.id !== id))
   }
 
   const toggleActive = async (id, isActive) => {
     const updated = await productService.toggleActive(id, isActive)
-    setProducts(products.map(p => p.id === id ? updated : p))
+    setProducts(prev => prev.map(p => p.id === id ? updated : p))
     return updated
   }
 

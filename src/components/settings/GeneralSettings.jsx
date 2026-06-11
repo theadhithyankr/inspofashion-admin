@@ -7,6 +7,7 @@ import { Spinner } from '../ui/Spinner'
 export function GeneralSettings() {
   const { settings, loading, saving, error, saveSettings } = useStoreSettings('general_settings')
   const [formData, setFormData] = useState({ store_name: '', support_email: '', whatsapp_number: '' })
+  const [success, setSuccess] = useState(false)
 
   useEffect(() => {
     if (settings) {
@@ -34,7 +35,8 @@ export function GeneralSettings() {
 
     try {
       await saveSettings(dataToSave)
-      alert('General settings saved successfully!')
+      setSuccess(true)
+      setTimeout(() => setSuccess(false), 3000)
     } catch (err) {
       console.error(err)
     }
@@ -85,7 +87,7 @@ export function GeneralSettings() {
                 placeholder="e.g. 9876543210"
                 value={formData.whatsapp_number}
                 onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })}
-                className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-brand-500 focus:border-brand-500 sm:text-sm"
+                className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
               />
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">+91 is added automatically for Indian numbers. This is where checkout messages will be sent.</p>
@@ -94,7 +96,7 @@ export function GeneralSettings() {
 
         <div className="pt-4 flex justify-end border-t border-gray-200 dark:border-gray-800">
           <Button type="submit" variant="primary" disabled={saving}>
-            {saving ? <><Spinner size="sm" className="mr-2" /> Saving...</> : 'Save Settings'}
+            {saving ? <><Spinner size="sm" className="mr-2" /> Saving...</> : success ? 'Saved!' : 'Save Settings'}
           </Button>
         </div>
       </form>

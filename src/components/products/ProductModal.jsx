@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Check, Upload, X, Search } from 'lucide-react'
 import { Modal } from '../ui/Modal'
 import { Input } from '../ui/Input'
@@ -10,6 +10,12 @@ import { useCollections } from '../../hooks/useCollections'
 
 const COMMON_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']
 const DEFAULT_COLORS = ['White', 'Black', 'Gray', 'Navy', 'Red', 'Blue', 'Green', 'Yellow', 'Pink', 'Purple', 'Beige', 'Brown', 'Olive']
+
+// Colors in Supabase may be stored as {name, hex} objects — extract just the name string
+function normalizeColors(colors) {
+  if (!Array.isArray(colors)) return []
+  return colors.map(c => (c && typeof c === 'object' && c.name) ? c.name : c)
+}
 
 function createImageId() {
   return globalThis.crypto?.randomUUID?.() || `image-${Date.now()}-${Math.random().toString(36).slice(2)}`
@@ -48,8 +54,24 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
   const [availableColors, setAvailableColors] = useState(DEFAULT_COLORS)
   const [colorSearch, setColorSearch] = useState('')
   const [showColorSuggestions, setShowColorSuggestions] = useState(false)
+  const colorDropdownRef = useRef(null)
+
+  // Close color dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (colorDropdownRef.current && !colorDropdownRef.current.contains(e.target)) {
+        setShowColorSuggestions(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   useEffect(() => {
+    if (!isOpen) {
+      resetForm()
+      return
+    }
     if (mode === 'edit' && product) {
       setFormData({
         title: product.title || '',
@@ -58,7 +80,7 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
         compare_at_price: product.compare_at_price || '',
         category: product.category || '',
         sizes: product.sizes || [],
-        colors: product.colors || [],
+        colors: normalizeColors(product.colors),
         quantity: product.quantity || '',
         material: product.material || '',
         fit_notes: product.fit_notes || '',
@@ -78,7 +100,7 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
       const availableImageIds = new Set(initialImages.map(getImageId))
       const primaryImageId = getImageId(initialImages[0] || {})
       const initialColorImageMap = Object.fromEntries(
-        (product.colors || []).map((color) => {
+        normalizeColors(product.colors).map((color) => {
           const savedImageIds = (savedColorImageMap[color] || []).filter((url) => availableImageIds.has(url))
           return [color, savedImageIds.length ? savedImageIds : (primaryImageId ? [primaryImageId] : [])]
         })
@@ -123,7 +145,10 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
     if (storedColors) {
       try {
         const colors = JSON.parse(storedColors)
-        setAvailableColors(colors)
+        const cleaned = normalizeColors(colors)
+        // Rewrite clean data back so bad format doesn't persist
+        localStorage.setItem('productColors', JSON.stringify(cleaned))
+        setAvailableColors(cleaned)
       } catch {
         setAvailableColors(DEFAULT_COLORS)
       }
@@ -145,7 +170,7 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
 
   const getFilteredColors = () => {
     return availableColors.filter(color =>
-      color.toLowerCase().includes(colorSearch.toLowerCase())
+      typeof color === 'string' && color.toLowerCase().includes(colorSearch.toLowerCase())
     )
   }
 
@@ -179,10 +204,14 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
         setImages(prev => [...prev, { id, file, preview: reader.result }])
         setColorImageMap((prev) => {
           const next = { ...prev }
-          formData.colors.forEach((color) => {
-            if (!next[color]?.length) {
-              next[color] = [id]
-            }
+          // Use formData from state via functional update to avoid stale closure
+          setFormData(fd => {
+            fd.colors.forEach((color) => {
+              if (!next[color]?.length) {
+                next[color] = [id]
+              }
+            })
+            return fd // no change to formData
           })
           return next
         })
@@ -578,7 +607,7 @@ export function ProductModal({ isOpen, onClose, mode = 'create', product = null,
           </label>
 
           {/* Color Search Input */}
-          <div className="mb-4 relative">
+          <div className="mb-4 relative" ref={colorDropdownRef}>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input

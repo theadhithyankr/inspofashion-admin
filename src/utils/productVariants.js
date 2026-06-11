@@ -5,7 +5,7 @@ export function normalizeColorImageMap(value) {
 
   return Object.fromEntries(
     Object.entries(value)
-      .filter(([color]) => typeof color === 'string' && color.trim())
+      .filter(([color]) => typeof color === 'string' && color.trim() && color !== '[object Object]')
       .map(([color, urls]) => [
         color,
         Array.isArray(urls)

@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useProducts } from '../hooks/useProducts'
 import { ProductTable } from '../components/products/ProductTable'
-import { ProductModal } from '../components/products/ProductModal'
+import { ProductEditor } from './ProductEditor'
 import { DeleteConfirmDialog } from '../components/products/DeleteConfirmDialog'
 import { Button } from '../components/ui/Button'
 import { Spinner } from '../components/ui/Spinner'
+import { ErrorBoundary } from '../components/ui/ErrorBoundary'
 import { DashboardLayout } from '../components/layout/DashboardLayout'
 import { CollectionsManager } from '../components/collections/CollectionsManager'
 import { HeroImageSettings } from '../components/settings/HeroImageSettings'
@@ -16,24 +17,23 @@ import { GeneralSettings } from '../components/settings/GeneralSettings'
 
 export function Dashboard() {
   const [activeTab, setActiveTab] = useState('Products')
-  
+
+  // 'list' | 'create' | 'edit'
+  const [productView, setProductView] = useState('list')
+
   const { products, loading, error, createProduct, updateProduct, deleteProduct, toggleActive } = useProducts()
-  const [modalOpen, setModalOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState(null)
-  const [modalMode, setModalMode] = useState('create')
   const [deleteLoading, setDeleteLoading] = useState(false)
 
   const handleAddClick = () => {
-    setModalMode('create')
     setSelectedProduct(null)
-    setModalOpen(true)
+    setProductView('create')
   }
 
   const handleEditClick = (product) => {
-    setModalMode('edit')
     setSelectedProduct(product)
-    setModalOpen(true)
+    setProductView('edit')
   }
 
   const handleDeleteClick = (product) => {
@@ -49,9 +49,15 @@ export function Dashboard() {
     await updateProduct(id, productData)
   }
 
+  const handleTabChange = (tab) => {
+    setActiveTab(tab)
+    if (tab !== 'Products') {
+      setProductView('list') // reset so coming back always shows the list
+    }
+  }
+
   const handleDeleteConfirm = async () => {
     if (!selectedProduct) return
-
     setDeleteLoading(true)
     try {
       await deleteProduct(selectedProduct.id, selectedProduct.image_url)
@@ -67,6 +73,23 @@ export function Dashboard() {
 
   const renderContent = () => {
     if (activeTab === 'Products') {
+      // ── Full-page editor (add / edit) ─────────────────────────────────
+      if (productView === 'create' || productView === 'edit') {
+        const backToList = () => { setProductView('list'); setSelectedProduct(null) }
+        return (
+          <ErrorBoundary onReset={backToList}>
+            <ProductEditor
+              key={selectedProduct?.id ?? 'create'}
+              mode={productView}
+              product={selectedProduct}
+              onSuccess={productView === 'create' ? handleProductCreate : handleProductUpdate}
+              onCancel={backToList}
+            />
+          </ErrorBoundary>
+        )
+      }
+
+      // ── Product list ──────────────────────────────────────────────────
       return (
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
@@ -107,14 +130,6 @@ export function Dashboard() {
               </div>
             )}
           </div>
-
-          <ProductModal
-            isOpen={modalOpen}
-            onClose={() => setModalOpen(false)}
-            mode={modalMode}
-            product={selectedProduct}
-            onSuccess={modalMode === 'create' ? handleProductCreate : handleProductUpdate}
-          />
 
           <DeleteConfirmDialog
             isOpen={deleteDialogOpen}
@@ -174,7 +189,7 @@ export function Dashboard() {
   }
 
   return (
-    <DashboardLayout activeTab={activeTab} setActiveTab={setActiveTab}>
+    <DashboardLayout activeTab={activeTab} setActiveTab={handleTabChange}>
       {renderContent()}
     </DashboardLayout>
   )

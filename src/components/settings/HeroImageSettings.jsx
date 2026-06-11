@@ -13,6 +13,8 @@ export function HeroImageSettings() {
     title: '', subtitle: '', image_url: '', button_men: '', button_women: '', button_men_url: '', button_women_url: ''
   })
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [uploadError, setUploadError] = useState(null)
+  const [success, setSuccess] = useState(false)
   const fileInputRef = useRef(null)
 
   useEffect(() => {
@@ -34,17 +36,18 @@ export function HeroImageSettings() {
     if (!file) return
 
     if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file')
+      setUploadError('Please upload an image file')
       return
     }
 
     try {
       setUploadingImage(true)
+      setUploadError(null)
       const url = await uploadImage(file, 'store-assets')
       setFormData(prev => ({ ...prev, image_url: url }))
     } catch (err) {
       console.error('Error uploading image:', err)
-      alert('Failed to upload image. Please try again.')
+      setUploadError('Failed to upload image. Please try again.')
     } finally {
       setUploadingImage(false)
     }
@@ -54,7 +57,8 @@ export function HeroImageSettings() {
     e.preventDefault()
     try {
       await saveSettings(formData)
-      alert('Hero settings saved successfully!')
+      setSuccess(true)
+      setTimeout(() => setSuccess(false), 3000)
     } catch (err) {
       console.error(err)
     }
@@ -69,9 +73,9 @@ export function HeroImageSettings() {
         <p className="text-gray-600 dark:text-gray-400 mt-2">Customize the main landing section of your storefront.</p>
       </div>
 
-      {error && (
+      {(error || uploadError) && (
         <div className="bg-red-50 border border-red-200 text-red-700 dark:bg-red-950 dark:border-red-900 dark:text-red-200 px-4 py-3 rounded-lg mb-6">
-          {error}
+          {error || uploadError}
         </div>
       )}
 
@@ -108,7 +112,7 @@ export function HeroImageSettings() {
                   <select
                     value={formData.button_men_url}
                     onChange={(e) => setFormData({ ...formData, button_men_url: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
                   >
                     <option value="" disabled>Select destination...</option>
                     <option value="/">Home Page</option>
@@ -145,7 +149,7 @@ export function HeroImageSettings() {
                   <select
                     value={formData.button_women_url}
                     onChange={(e) => setFormData({ ...formData, button_women_url: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
                   >
                     <option value="" disabled>Select destination...</option>
                     <option value="/">Home Page</option>
@@ -234,7 +238,7 @@ export function HeroImageSettings() {
 
         <div className="pt-4 flex justify-end gap-3 border-t border-gray-200 dark:border-gray-800">
           <Button type="submit" variant="primary" disabled={saving || uploadingImage}>
-            {saving ? <><Spinner size="sm" className="mr-2" /> Saving...</> : 'Save Hero Settings'}
+            {saving ? <><Spinner size="sm" className="mr-2" /> Saving...</> : success ? 'Saved!' : 'Save Hero Settings'}
           </Button>
         </div>
       </form>
