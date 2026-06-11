@@ -33,6 +33,65 @@ export function validateProduct(data) {
   }
 }
 
+export function validateVariantData(variant) {
+  const errors = {}
+
+  // Color name validation
+  if (!variant.colorName || variant.colorName.trim().length === 0) {
+    errors.colorName = 'Color name is required'
+  } else if (variant.colorName.length < 2) {
+    errors.colorName = 'Color name must be at least 2 characters'
+  } else if (variant.colorName.length > 50) {
+    errors.colorName = 'Color name must be less than 50 characters'
+  }
+
+  // Color code validation
+  if (!variant.colorCode || variant.colorCode.trim().length === 0) {
+    errors.colorCode = 'Color code is required'
+  } else {
+    const hexRegex = /^#[0-9A-Fa-f]{6}$/
+    if (!hexRegex.test(variant.colorCode.trim())) {
+      errors.colorCode = 'Invalid hex format. Use #RRGGBB (e.g., #006400)'
+    }
+  }
+
+  // SKU validation
+  if (!variant.sku || variant.sku.trim().length === 0) {
+    errors.sku = 'SKU is required'
+  } else if (variant.sku.length < 5) {
+    errors.sku = 'SKU must be at least 5 characters'
+  } else if (variant.sku.length > 50) {
+    errors.sku = 'SKU must be less than 50 characters'
+  }
+
+  // Stock quantity validation
+  if (variant.stockQuantity === '' || variant.stockQuantity === null || variant.stockQuantity === undefined) {
+    errors.stockQuantity = 'Stock quantity is required'
+  } else {
+    const num = parseInt(variant.stockQuantity, 10)
+    if (isNaN(num)) {
+      errors.stockQuantity = 'Stock must be a valid number'
+    } else if (num < 0) {
+      errors.stockQuantity = 'Stock cannot be negative'
+    }
+  }
+
+  // Price validation (optional)
+  if (variant.price !== '' && variant.price !== null && variant.price !== undefined) {
+    const num = parseFloat(variant.price)
+    if (isNaN(num)) {
+      errors.price = 'Price must be a valid number'
+    } else if (num < 0) {
+      errors.price = 'Price cannot be negative'
+    }
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors,
+  }
+}
+
 export function validateImageFile(file) {
   const errors = []
 

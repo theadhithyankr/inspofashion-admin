@@ -45,7 +45,12 @@ function makeEmptyForm() {
 function parseArray(value) {
   if (Array.isArray(value)) {
     // Normalize color objects {name, hex} → plain strings
-    return value.map(item => (item && typeof item === 'object' && item.name) ? item.name : item)
+    return value.map(item => {
+      if (item && typeof item === 'object' && item.name) {
+        return String(item.name).trim()
+      }
+      return String(item).trim()
+    }).filter(Boolean)
   }
   if (typeof value === 'string') {
     if (value.startsWith('[')) {
@@ -59,6 +64,8 @@ function parseArray(value) {
         return value.replace(/^{|}$/g, '').split(',').map(s => s.trim().replace(/^"|"$/g, '')).filter(Boolean)
       } catch { /* fall through */ }
     }
+    // Try to split by comma for plain text
+    return value.split(',').map(s => s.trim()).filter(Boolean)
   }
   return []
 }
@@ -146,7 +153,12 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
       if (stored) {
         const parsed = JSON.parse(stored)
         // Normalize any {name, hex} objects that may have been saved previously
-        const cleaned = parsed.map(c => (c && typeof c === 'object' && c.name) ? c.name : c)
+        const cleaned = parsed.map(c => {
+          if (c && typeof c === 'object' && c.name) {
+            return String(c.name).trim()
+          }
+          return String(c).trim()
+        }).filter(Boolean)
         // Rewrite clean data back so it doesn't persist in bad format
         localStorage.setItem('productColors', JSON.stringify(cleaned))
         return cleaned
@@ -162,17 +174,22 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
   useEffect(() => {
     if (mode === 'edit' && product) {
       const imgs = productToImages(product)
-      setFormData(productToForm(product))
+      const form = productToForm(product)
+      const colorMap = productToColorImageMap(product, imgs)
+      
+      setFormData(form)
       setImages(imgs)
-      setColorImageMap(productToColorImageMap(product, imgs))
+      setColorImageMap(colorMap)
       setImagesToRemove([])
       setErrors({})
+      setSavedSuccess(false)
     } else if (mode === 'create') {
       setFormData(makeEmptyForm())
       setImages([])
       setColorImageMap({})
       setImagesToRemove([])
       setErrors({})
+      setSavedSuccess(false)
     }
   }, [mode, product?.id]) // only re-run when the actual product ID changes
 

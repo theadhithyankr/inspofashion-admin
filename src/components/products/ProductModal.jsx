@@ -14,7 +14,14 @@ const DEFAULT_COLORS = ['White', 'Black', 'Gray', 'Navy', 'Red', 'Blue', 'Green'
 // Colors in Supabase may be stored as {name, hex} objects — extract just the name string
 function normalizeColors(colors) {
   if (!Array.isArray(colors)) return []
-  return colors.map(c => (c && typeof c === 'object' && c.name) ? c.name : c)
+  return colors
+    .map(c => {
+      if (c && typeof c === 'object' && c.name) {
+        return String(c.name).trim()
+      }
+      return String(c).trim()
+    })
+    .filter(Boolean)
 }
 
 function createImageId() {
