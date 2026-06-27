@@ -14,7 +14,7 @@ Administrative console for managing InspoFashion catalog and operations.
 
 InspoFashion Admin is a fashion operations project in the TheAdhithyanKR/inspofashion-admin repository. Protected React admin dashboard for managing the Inspo Fashion storefront.
 
-The README was written from the repository contents, including its manifest files, source tree, and available project metadata. The primary manifest is $(@{Path=package.json; Json=}.Path), and the commands below are taken from its scripts.
+The README was written from the repository contents, including its manifest files, source tree, and available project metadata. The primary manifest is `package.json`, and the commands below are taken from its scripts.
 
 ## Key Features
 
