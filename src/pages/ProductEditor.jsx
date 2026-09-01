@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Check, Upload, X, Search } from 'lucide-react'
+import { ArrowLeft, Check, Upload, X, Search, AlertCircle } from 'lucide-react'
 import { Input } from '../components/ui/Input'
 import { Button } from '../components/ui/Button'
 import { Spinner } from '../components/ui/Spinner'
 import { productService } from '../services/productService'
+import { variantService } from '../services/variantService'
 import { validateProduct, validateImageFile } from '../utils/validators'
 import { normalizeColorImageMap } from '../utils/productVariants'
+import { validateHexCode, generateSuggestedSKU } from '../utils/colorValidator'
 import { useCollections } from '../hooks/useCollections'
 
 const COMMON_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']
@@ -141,6 +143,16 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
     }
     return {}
   })
+  const [colorVariantData, setColorVariantData] = useState(() => {
+    // For edit mode, load existing variant data
+    if (mode === 'edit' && product) {
+      const data = {}
+      // We'll populate this after fetching variants
+      return data
+    }
+    return {}
+  })
+  const [existingVariants, setExistingVariants] = useState([])
   const [imagesToRemove, setImagesToRemove] = useState([])
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
@@ -183,6 +195,26 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
       setImagesToRemove([])
       setErrors({})
       setSavedSuccess(false)
+      
+      // Load existing variants for this product
+      variantService.getVariantsByProductId(product.id)
+        .then(variants => {
+          setExistingVariants(variants)
+          // Build colorVariantData map from existing variants
+          const variantData = {}
+          variants.forEach(v => {
+            variantData[v.colorName] = {
+              colorCode: v.colorCode,
+              sku: v.sku,
+              stockQuantity: v.stockQuantity,
+              price: v.price,
+              variantId: v.id,
+              isActive: v.isActive,
+            }
+          })
+          setColorVariantData(variantData)
+        })
+        .catch(err => console.error('Failed to load variants:', err))
     } else if (mode === 'create') {
       setFormData(makeEmptyForm())
       setImages([])
@@ -190,6 +222,8 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
       setImagesToRemove([])
       setErrors({})
       setSavedSuccess(false)
+      setExistingVariants([])
+      setColorVariantData({})
     }
   }, [mode, product?.id]) // only re-run when the actual product ID changes
 
@@ -308,6 +342,17 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
         }
       })
 
+      // Initialize color variant data if adding new color
+      if (!isSelected && !colorVariantData[color]) {
+        setColorVariantData(prev => ({
+          ...prev,
+          [color]: {
+            colorCode: '#808080', // Default gray
+            sku: generateSuggestedSKU(formData.title, color, Object.keys(colorVariantData).length + 1),
+          },
+        }))
+      }
+
       return { ...prev, colors: newColors }
     })
     if (errors.colors) setErrors(prev => ({ ...prev, colors: null }))
@@ -326,6 +371,35 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
     if (errors.color_image_map) setErrors(prev => ({ ...prev, color_image_map: null }))
   }
 
+  const updateColorCode = (color, code) => {
+    // Validate hex code
+    const validation = validateHexCode(code.trim())
+    if (!validation.isValid) {
+      setErrors(prev => ({ ...prev, [`color_code_${color}`]: validation.error }))
+      return
+    }
+    
+    setColorVariantData(prev => ({
+      ...prev,
+      [color]: { ...prev[color], colorCode: code.trim() },
+    }))
+    setErrors(prev => ({ ...prev, [`color_code_${color}`]: null }))
+  }
+
+  const updateSku = (color, sku) => {
+    setColorVariantData(prev => ({
+      ...prev,
+      [color]: { ...prev[color], sku: sku.trim() },
+    }))
+    setErrors(prev => ({ ...prev, [`sku_${color}`]: null }))
+  }
+
+  const generateSku = (color) => {
+    const colorIndex = formData.colors.indexOf(color) + 1
+    const suggested = generateSuggestedSKU(formData.title, color, colorIndex)
+    updateSku(color, suggested)
+  }
+
   // ── submit ────────────────────────────────────────────────────────────────
 
   const handleSubmit = async (e) => {
@@ -335,6 +409,34 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
     if (!validation.isValid) { setErrors(validation.errors); return }
     if (images.length === 0) { setErrors(prev => ({ ...prev, image: 'At least one image is required' })); return }
     if (formData.colors.length === 0) { setErrors(prev => ({ ...prev, colors: 'At least one color must be selected' })); return }
+
+    // Validate color variant data (codes and SKUs)
+    let hasColorErrors = false
+    const colorErrors = {}
+    for (const color of formData.colors) {
+      const variantData = colorVariantData[color] || {}
+      
+      if (!variantData.colorCode) {
+        colorErrors[`color_code_${color}`] = 'Color code is required'
+        hasColorErrors = true
+      } else {
+        const codeValidation = validateHexCode(variantData.colorCode)
+        if (!codeValidation.isValid) {
+          colorErrors[`color_code_${color}`] = codeValidation.error
+          hasColorErrors = true
+        }
+      }
+      
+      if (!variantData.sku) {
+        colorErrors[`sku_${color}`] = 'SKU is required'
+        hasColorErrors = true
+      }
+    }
+    
+    if (hasColorErrors) {
+      setErrors(prev => ({ ...prev, ...colorErrors }))
+      return
+    }
 
     const currentImageIds = new Set(images.map(getImageId))
     const unmappedColors = formData.colors.filter(
@@ -411,11 +513,61 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
         color_image_map: finalColorImageMap,
       }
 
+      let createdProduct
       if (mode === 'create') {
-        await onSuccess(productData)
+        createdProduct = await productService.createProduct(productData)
       } else {
-        await onSuccess(product.id, productData)
+        createdProduct = await productService.updateProduct(product.id, productData)
       }
+
+      // Handle variant creation/update/deletion
+      setUploadProgress(mode === 'create' ? 'Creating variants...' : 'Updating variants...')
+      
+      const quantityPerVariant = Math.max(1, Math.floor(parseInt(formData.quantity) / formData.colors.length))
+      
+      // Determine which variants to create/update/delete
+      const selectedColorNames = new Set(formData.colors)
+      const existingColorNames = new Set(existingVariants.map(v => v.colorName))
+      
+      // Delete variants for removed colors
+      for (const variant of existingVariants) {
+        if (!selectedColorNames.has(variant.colorName)) {
+          await variantService.deleteVariant(variant.id)
+        }
+      }
+      
+      // Create or update variants
+      for (const color of formData.colors) {
+        const variantData = colorVariantData[color]
+        const existingVariant = existingVariants.find(v => v.colorName === color)
+        const variantImages = finalColorImageMap[color] || []
+        
+        if (existingVariant) {
+          // Update existing variant — use stored per-variant stock/price, not the divided total
+          await variantService.updateVariant(existingVariant.id, {
+            colorName: color,
+            colorCode: variantData.colorCode,
+            sku: variantData.sku,
+            stockQuantity: variantData.stockQuantity ?? quantityPerVariant,
+            price: variantData.price ?? null,
+            isActive: variantData.isActive ?? true,
+          })
+          // Note: Image management is done via VariantModal
+        } else {
+          // Create new variant
+          await variantService.createVariant({
+            productId: createdProduct.id,
+            colorName: color,
+            colorCode: variantData.colorCode,
+            sku: variantData.sku,
+            stockQuantity: quantityPerVariant,
+            isActive: true,
+            images: variantImages.map(url => ({ url })),
+          })
+        }
+      }
+
+      await onSuccess(mode === 'create' ? productData : (product.id, productData))
 
       imagesToRemove.forEach(url => {
         productService.deleteImage(url).catch(err => console.error('Failed to delete image', url, err))
