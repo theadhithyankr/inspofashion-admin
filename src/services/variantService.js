@@ -247,7 +247,15 @@ export const variantService = {
    * @param {string} variantId - Variant ID
    */
   async deleteVariant(variantId) {
-    // Cascade delete is handled by database constraint
+    // Explicitly remove variant_images first so records are cleaned up
+    // even if the DB cascade constraint is not present.
+    const { error: imagesError } = await supabase
+      .from('variant_images')
+      .delete()
+      .eq('variant_id', variantId)
+
+    if (imagesError) throw imagesError
+
     const { error } = await supabase
       .from('product_variants')
       .delete()

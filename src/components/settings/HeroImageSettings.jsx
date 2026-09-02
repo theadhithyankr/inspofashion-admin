@@ -120,7 +120,7 @@ export function HeroImageSettings() {
                     {collections && collections.length > 0 && (
                       <optgroup label="Collections">
                         {collections.map(col => (
-                          <option key={col.id} value={`/collections/${encodeURIComponent(col.name)}`}>
+                          <option key={col.id} value={`/collections/${col.slug}`}>
                             {col.name}
                           </option>
                         ))}
@@ -157,7 +157,7 @@ export function HeroImageSettings() {
                     {collections && collections.length > 0 && (
                       <optgroup label="Collections">
                         {collections.map(col => (
-                          <option key={col.id} value={`/collections/${encodeURIComponent(col.name)}`}>
+                          <option key={col.id} value={`/collections/${col.slug}`}>
                             {col.name}
                           </option>
                         ))}
