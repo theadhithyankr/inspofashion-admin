@@ -132,6 +132,12 @@ export const variantService = {
       images = [],
     } = variantData
 
+    // Guard: SKU must be unique across all variants
+    await this.assertSKUUnique(sku)
+
+    // Sanitise stock: must be a non-negative integer, default 0
+    const safeStock = Math.max(0, Math.floor(Number(stockQuantity) || 0))
+
     // Insert variant
     const { data: variant, error: variantError } = await supabase
       .from('product_variants')
@@ -141,7 +147,7 @@ export const variantService = {
           color_name: colorName,
           color_code: colorCode,
           sku: sku,
-          stock_quantity: stockQuantity,
+          stock_quantity: safeStock,
           price: price || null,
           is_active: isActive,
         },
@@ -197,11 +203,18 @@ export const variantService = {
   async updateVariant(variantId, updates) {
     const updateData = {}
 
+    // If SKU is being changed, verify the new value is not already taken
+    if (updates.sku !== undefined) {
+      await this.assertSKUUnique(updates.sku, variantId)
+    }
+
     // Map camelCase to snake_case
     if (updates.colorName !== undefined) updateData.color_name = updates.colorName
     if (updates.colorCode !== undefined) updateData.color_code = updates.colorCode
     if (updates.sku !== undefined) updateData.sku = updates.sku
-    if (updates.stockQuantity !== undefined) updateData.stock_quantity = updates.stockQuantity
+    if (updates.stockQuantity !== undefined) {
+      updateData.stock_quantity = Math.max(0, Math.floor(Number(updates.stockQuantity) || 0))
+    }
     if (updates.price !== undefined) updateData.price = updates.price === null ? null : updates.price
     if (updates.isActive !== undefined) updateData.is_active = updates.isActive
 
@@ -247,8 +260,13 @@ export const variantService = {
    * @param {string} variantId - Variant ID
    */
   async deleteVariant(variantId) {
-    // Explicitly remove variant_images first so records are cleaned up
-    // even if the DB cascade constraint is not present.
+    // 1. Fetch image URLs before deleting rows so we can clean up storage
+    const { data: imageRows } = await supabase
+      .from('variant_images')
+      .select('image_url')
+      .eq('variant_id', variantId)
+
+    // 2. Delete variant_images rows (also covered by DB cascade, but explicit is safer)
     const { error: imagesError } = await supabase
       .from('variant_images')
       .delete()
@@ -256,12 +274,35 @@ export const variantService = {
 
     if (imagesError) throw imagesError
 
+    // 3. Delete the variant row
     const { error } = await supabase
       .from('product_variants')
       .delete()
       .eq('id', variantId)
 
     if (error) throw error
+
+    // 4. Remove image files from storage — fire-and-forget so a storage
+    //    failure does not roll back the already-committed DB deletion.
+    if (imageRows && imageRows.length > 0) {
+      const filePaths = imageRows
+        .map(row => {
+          const parts = (row.image_url || '').split('/product-images/')
+          return parts.length === 2 ? parts[1] : null
+        })
+        .filter(Boolean)
+
+      if (filePaths.length > 0) {
+        supabase.storage
+          .from('product-images')
+          .remove(filePaths)
+          .then(({ error: storageError }) => {
+            if (storageError) {
+              console.warn('Storage cleanup after variant delete failed:', storageError.message)
+            }
+          })
+      }
+    }
   },
 
   /**
@@ -371,6 +412,18 @@ export const variantService = {
   },
 
   /**
+   * Assert SKU uniqueness — throws a clear user-facing error if already taken.
+   * @param {string} sku
+   * @param {string|null} excludeVariantId - Pass the existing variant ID when editing
+   */
+  async assertSKUUnique(sku, excludeVariantId = null) {
+    const unique = await this.isSKUUnique(sku, excludeVariantId)
+    if (!unique) {
+      throw new Error(`SKU "${sku}" is already in use by another variant.`)
+    }
+  },
+
+  /**
    * Get variant by SKU
    * @param {string} sku - SKU to search
    * @returns {Promise<Object|null>} Variant or null if not found
@@ -428,9 +481,10 @@ export const variantService = {
    * @param {number} quantity - New quantity
    */
   async updateVariantStock(variantId, quantity) {
+    const safeStock = Math.max(0, Math.floor(Number(quantity) || 0))
     const { error } = await supabase
       .from('product_variants')
-      .update({ stock_quantity: quantity })
+      .update({ stock_quantity: safeStock })
       .eq('id', variantId)
 
     if (error) throw error

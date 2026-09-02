@@ -68,9 +68,11 @@ export function validateVariantData(variant) {
   if (variant.stockQuantity === '' || variant.stockQuantity === null || variant.stockQuantity === undefined) {
     errors.stockQuantity = 'Stock quantity is required'
   } else {
-    const num = parseInt(variant.stockQuantity, 10)
+    const num = Number(variant.stockQuantity)
     if (isNaN(num)) {
       errors.stockQuantity = 'Stock must be a valid number'
+    } else if (!Number.isInteger(num)) {
+      errors.stockQuantity = 'Stock must be a whole number'
     } else if (num < 0) {
       errors.stockQuantity = 'Stock cannot be negative'
     }

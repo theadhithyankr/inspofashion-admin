@@ -475,33 +475,35 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
     setErrors({})
 
     try {
-      // In edit mode, ensure we have the latest variants from the DB before saving.
-      // The background fetch may not have completed yet (race condition), so we
-      // resolve here and keep a local reference that the save loop can use directly
-      // — React state updates are async and would not be visible within this function.
+      // In edit mode, always fetch the current variants from the DB immediately
+      // before the save loop. Using stale state risks treating existing variants
+      // as new (hitting the SKU unique constraint) if the background fetch was
+      // incomplete or a color was re-toggled before it finished.
       let resolvedVariants = existingVariants
       let resolvedColorVariantData = colorVariantData
-      if (mode === 'edit' && product?.id && resolvedVariants.length === 0) {
+      if (mode === 'edit' && product?.id) {
         try {
           resolvedVariants = await variantService.getVariantsByProductId(product.id)
           const variantDataMap = {}
           resolvedVariants.forEach(v => {
+            // Prefer any user edits already in colorVariantData; only fall back
+            // to the DB value for fields the user hasn't touched.
+            const existing = colorVariantData[v.colorName] || {}
             variantDataMap[v.colorName] = {
-              colorCode: v.colorCode,
-              sku: v.sku,
-              stockQuantity: v.stockQuantity,
-              price: v.price,
-              variantId: v.id,
-              isActive: v.isActive,
-              savedImages: v.images || [],
+              colorCode:    existing.colorCode    ?? v.colorCode,
+              sku:          existing.sku          ?? v.sku,
+              stockQuantity: existing.stockQuantity ?? v.stockQuantity,
+              price:        existing.price        ?? v.price,
+              isActive:     existing.isActive     ?? v.isActive,
+              variantId:    v.id,                  // always use the real DB id
+              savedImages:  v.images || [],
             }
           })
           resolvedColorVariantData = variantDataMap
-          // Also update state so the UI is current after save
           setExistingVariants(resolvedVariants)
           setColorVariantData(variantDataMap)
         } catch (err) {
-          console.warn('Could not pre-fetch variants, proceeding anyway:', err)
+          console.warn('Could not fetch variants before save, proceeding with cached data:', err)
         }
       }
 

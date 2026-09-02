@@ -101,10 +101,14 @@ export function validateStockQuantity(quantity) {
     return { isValid: false, error: 'Stock quantity is required' }
   }
 
-  const num = parseInt(quantity, 10)
+  const num = Number(quantity)
 
   if (isNaN(num)) {
     return { isValid: false, error: 'Stock must be a valid number' }
+  }
+
+  if (!Number.isInteger(num)) {
+    return { isValid: false, error: 'Stock must be a whole number' }
   }
 
   if (num < 0) {
