@@ -36,6 +36,16 @@ export function useProducts() {
     return updated
   }
 
+  // State-only helpers — used when the caller has already performed the DB
+  // operation and just needs to sync the local product list.
+  const addProduct = (newProduct) => {
+    setProducts(prev => [newProduct, ...prev])
+  }
+
+  const replaceProduct = (id, updatedFields) => {
+    setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updatedFields } : p))
+  }
+
   const deleteProduct = async (id, imageUrl) => {
     await productService.deleteProduct(id)
     if (imageUrl) {
@@ -59,5 +69,7 @@ export function useProducts() {
     updateProduct,
     deleteProduct,
     toggleActive,
+    addProduct,
+    replaceProduct,
   }
 }

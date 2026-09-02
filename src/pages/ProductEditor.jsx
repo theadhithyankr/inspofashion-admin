@@ -637,7 +637,7 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
         }
       }
 
-      await onSuccess(mode === 'create' ? productData : product.id, productData)
+      await onSuccess(mode === 'create' ? createdProduct : product.id, productData)
 
       imagesToRemove.forEach(url => {
         productService.deleteImage(url).catch(err => console.error('Failed to delete image', url, err))

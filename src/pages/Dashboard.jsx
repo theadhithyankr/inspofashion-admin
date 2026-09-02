@@ -21,7 +21,7 @@ export function Dashboard() {
   // 'list' | 'create' | 'edit'
   const [productView, setProductView] = useState('list')
 
-  const { products, loading, error, createProduct, updateProduct, deleteProduct, toggleActive } = useProducts()
+  const { products, loading, error, createProduct, updateProduct, deleteProduct, toggleActive, addProduct, replaceProduct } = useProducts()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -41,12 +41,14 @@ export function Dashboard() {
     setDeleteDialogOpen(true)
   }
 
-  const handleProductCreate = async (productData) => {
-    await createProduct(productData)
+  const handleProductCreate = async (newProduct) => {
+    // ProductEditor already inserted the product — just add it to local state.
+    addProduct(newProduct)
   }
 
-  const handleProductUpdate = async (id, productData) => {
-    await updateProduct(id, productData)
+  const handleProductUpdate = async (id, updatedProduct) => {
+    // ProductEditor already updated the product — just sync local state.
+    replaceProduct(id, updatedProduct)
   }
 
   const handleTabChange = (tab) => {
