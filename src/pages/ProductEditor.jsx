@@ -210,6 +210,7 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
               price: v.price,
               variantId: v.id,
               isActive: v.isActive,
+              savedImages: v.images || [],
             }
           })
           setColorVariantData(variantData)
@@ -342,8 +343,10 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
         }
       })
 
-      // Initialize color variant data if adding new color
-      if (!isSelected && !colorVariantData[color]) {
+      // Initialize color variant data if adding a genuinely new color.
+      // Skip if colorVariantData already has it (fetched from DB) or
+      // existingVariants has it (fetch still in flight).
+      if (!isSelected && !colorVariantData[color] && !existingVariants.some(v => v.colorName === color)) {
         setColorVariantData(prev => ({
           ...prev,
           [color]: {
@@ -410,29 +413,42 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
     if (images.length === 0) { setErrors(prev => ({ ...prev, image: 'At least one image is required' })); return }
     if (formData.colors.length === 0) { setErrors(prev => ({ ...prev, colors: 'At least one color must be selected' })); return }
 
-    // Validate color variant data (codes and SKUs)
+    // In edit mode the variants are fetched async. Skip client-side colorCode/sku
+    // validation entirely if existingVariants hasn't loaded yet — the save loop
+    // will fetch fresh data from the DB before writing anything.
+    const skipColorValidation = mode === 'edit' && existingVariants.length === 0
+
     let hasColorErrors = false
     const colorErrors = {}
-    for (const color of formData.colors) {
-      const variantData = colorVariantData[color] || {}
-      
-      if (!variantData.colorCode) {
-        colorErrors[`color_code_${color}`] = 'Color code is required'
-        hasColorErrors = true
-      } else {
-        const codeValidation = validateHexCode(variantData.colorCode)
-        if (!codeValidation.isValid) {
-          colorErrors[`color_code_${color}`] = codeValidation.error
+
+    if (!skipColorValidation) {
+      for (const color of formData.colors) {
+        const variantData = colorVariantData[color] || {}
+
+        // If this color maps to an existing variant, skip client-side checks
+        const alreadySaved =
+          variantData.variantId ||
+          existingVariants.some(v => v.colorName === color)
+        if (alreadySaved) continue
+
+        if (!variantData.colorCode) {
+          colorErrors[`color_code_${color}`] = 'Color code is required'
+          hasColorErrors = true
+        } else {
+          const codeValidation = validateHexCode(variantData.colorCode)
+          if (!codeValidation.isValid) {
+            colorErrors[`color_code_${color}`] = codeValidation.error
+            hasColorErrors = true
+          }
+        }
+
+        if (!variantData.sku) {
+          colorErrors[`sku_${color}`] = 'SKU is required'
           hasColorErrors = true
         }
       }
-      
-      if (!variantData.sku) {
-        colorErrors[`sku_${color}`] = 'SKU is required'
-        hasColorErrors = true
-      }
     }
-    
+
     if (hasColorErrors) {
       setErrors(prev => ({ ...prev, ...colorErrors }))
       return
@@ -459,6 +475,36 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
     setErrors({})
 
     try {
+      // In edit mode, ensure we have the latest variants from the DB before saving.
+      // The background fetch may not have completed yet (race condition), so we
+      // resolve here and keep a local reference that the save loop can use directly
+      // — React state updates are async and would not be visible within this function.
+      let resolvedVariants = existingVariants
+      let resolvedColorVariantData = colorVariantData
+      if (mode === 'edit' && product?.id && resolvedVariants.length === 0) {
+        try {
+          resolvedVariants = await variantService.getVariantsByProductId(product.id)
+          const variantDataMap = {}
+          resolvedVariants.forEach(v => {
+            variantDataMap[v.colorName] = {
+              colorCode: v.colorCode,
+              sku: v.sku,
+              stockQuantity: v.stockQuantity,
+              price: v.price,
+              variantId: v.id,
+              isActive: v.isActive,
+              savedImages: v.images || [],
+            }
+          })
+          resolvedColorVariantData = variantDataMap
+          // Also update state so the UI is current after save
+          setExistingVariants(resolvedVariants)
+          setColorVariantData(variantDataMap)
+        } catch (err) {
+          console.warn('Could not pre-fetch variants, proceeding anyway:', err)
+        }
+      }
+
       const finalImageUrls = []
       const imageUrlById = {}
       const filesToUpload = images.filter(img => img.file)
@@ -522,44 +568,66 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
 
       // Handle variant creation/update/deletion
       setUploadProgress(mode === 'create' ? 'Creating variants...' : 'Updating variants...')
-      
+
       const quantityPerVariant = Math.max(1, Math.floor(parseInt(formData.quantity) / formData.colors.length))
-      
+
       // Determine which variants to create/update/delete
       const selectedColorNames = new Set(formData.colors)
-      const existingColorNames = new Set(existingVariants.map(v => v.colorName))
-      
+
       // Delete variants for removed colors
-      for (const variant of existingVariants) {
+      for (const variant of resolvedVariants) {
         if (!selectedColorNames.has(variant.colorName)) {
           await variantService.deleteVariant(variant.id)
         }
       }
-      
+
       // Create or update variants
       for (const color of formData.colors) {
-        const variantData = colorVariantData[color]
-        const existingVariant = existingVariants.find(v => v.colorName === color)
+        const variantData = resolvedColorVariantData[color]
         const variantImages = finalColorImageMap[color] || []
-        
-        if (existingVariant) {
+
+        // Prefer the variantId stored when variants were fetched; fall back to
+        // scanning resolvedVariants in case colorVariantData was not yet populated.
+        const existingVariant = resolvedVariants.find(v => v.colorName === color)
+        const existingId = variantData?.variantId || existingVariant?.id
+
+        if (existingId) {
+          // Merge: prefer colorVariantData values, fall back to what the DB returned
+          const colorCode   = variantData?.colorCode   ?? existingVariant?.colorCode
+          const sku         = variantData?.sku         ?? existingVariant?.sku
+          const savedImages = variantData?.savedImages ?? existingVariant?.images ?? []
+
           // Update existing variant — use stored per-variant stock/price, not the divided total
-          await variantService.updateVariant(existingVariant.id, {
+          await variantService.updateVariant(existingId, {
             colorName: color,
-            colorCode: variantData.colorCode,
-            sku: variantData.sku,
-            stockQuantity: variantData.stockQuantity ?? quantityPerVariant,
-            price: variantData.price ?? null,
-            isActive: variantData.isActive ?? true,
+            colorCode,
+            sku,
+            stockQuantity: variantData?.stockQuantity ?? existingVariant?.stockQuantity ?? quantityPerVariant,
+            price: variantData?.price ?? existingVariant?.price ?? null,
+            isActive: variantData?.isActive ?? existingVariant?.isActive ?? true,
           })
-          // Note: Image management is done via VariantModal
+
+          // Sync variant_images: add new URLs, remove deleted ones
+          const savedUrls   = new Set(savedImages.map(img => img.url))
+          const desiredUrls = new Set(variantImages)
+
+          for (const img of savedImages) {
+            if (!desiredUrls.has(img.url)) {
+              await variantService.removeVariantImage(img.id)
+            }
+          }
+
+          const newUrls = variantImages.filter(url => !savedUrls.has(url))
+          if (newUrls.length > 0) {
+            await variantService.addVariantImages(existingId, newUrls)
+          }
         } else {
           // Create new variant
           await variantService.createVariant({
             productId: createdProduct.id,
             colorName: color,
-            colorCode: variantData.colorCode,
-            sku: variantData.sku,
+            colorCode: variantData?.colorCode ?? '#808080',
+            sku: variantData?.sku ?? generateSuggestedSKU(formData.title, color, formData.colors.indexOf(color) + 1),
             stockQuantity: quantityPerVariant,
             isActive: true,
             images: variantImages.map(url => ({ url })),
@@ -567,7 +635,7 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
         }
       }
 
-      await onSuccess(mode === 'create' ? productData : (product.id, productData))
+      await onSuccess(mode === 'create' ? productData : product.id, productData)
 
       imagesToRemove.forEach(url => {
         productService.deleteImage(url).catch(err => console.error('Failed to delete image', url, err))
@@ -579,6 +647,7 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
         onCancel()
       }, 800)
     } catch (err) {
+      console.error('ProductEditor save error:', err)
       setErrors({ submit: err.message || 'Failed to save product. Please try again.' })
     } finally {
       setLoading(false)
