@@ -209,9 +209,10 @@ export function useVariants(productId) {
     try {
       setError(null)
       await variantService.updateVariantStock(variantId, quantity)
+      const safeStock = Math.max(0, Math.floor(Number(quantity) || 0))
       setVariants(prev =>
         prev.map(v =>
-          v.id === variantId ? { ...v, stockQuantity: quantity } : v
+          v.id === variantId ? { ...v, stockQuantity: safeStock } : v
         )
       )
     } catch (err) {

@@ -1,5 +1,31 @@
 import { supabase } from '../lib/supabase'
 
+function slugify(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
+}
+
+async function generateUniqueCollectionSlug(name, excludeId = null) {
+  const base = slugify(name)
+  let slug = base
+  let counter = 1
+
+  while (true) {
+    let query = supabase
+      .from('collections')
+      .select('id', { count: 'exact' })
+      .eq('slug', slug)
+
+    if (excludeId) query = query.neq('id', excludeId)
+
+    const { count, error } = await query
+    if (error) throw error
+    if (count === 0) return slug
+
+    slug = `${base}-${counter}`
+    counter++
+  }
+}
+
 export const collectionService = {
   getCollections: async () => {
     const { data, error } = await supabase
@@ -12,9 +38,8 @@ export const collectionService = {
   },
 
   createCollection: async (collectionData) => {
-    // Generate slug from name if not provided
-    const slug = collectionData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
-    
+    const slug = await generateUniqueCollectionSlug(collectionData.name)
+
     const { data, error } = await supabase
       .from('collections')
       .insert([{ ...collectionData, slug }])
@@ -26,9 +51,15 @@ export const collectionService = {
   },
 
   updateCollection: async (id, collectionData) => {
+    // Regenerate slug if name changed, ensuring uniqueness excluding this record
+    const updates = { ...collectionData }
+    if (collectionData.name) {
+      updates.slug = await generateUniqueCollectionSlug(collectionData.name, id)
+    }
+
     const { data, error } = await supabase
       .from('collections')
-      .update(collectionData)
+      .update(updates)
       .eq('id', id)
       .select()
       .single()

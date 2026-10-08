@@ -203,7 +203,7 @@ export const variantService = {
   async updateVariant(variantId, updates) {
     const updateData = {}
 
-    // If SKU is being changed, verify the new value is not already taken
+    // If SKU is being changed, verify it's unique
     if (updates.sku !== undefined) {
       await this.assertSKUUnique(updates.sku, variantId)
     }

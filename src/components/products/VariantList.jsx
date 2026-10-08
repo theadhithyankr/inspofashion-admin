@@ -51,7 +51,7 @@ export function VariantList({
     if (modalMode === 'create') {
       await onAddVariant(variantData)
     } else {
-      await onUpdateVariant()
+      await onUpdateVariant(selectedVariant?.id)
     }
     handleModalClose()
   }

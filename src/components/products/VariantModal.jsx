@@ -17,6 +17,7 @@ export function VariantModal({ isOpen, onClose, mode = 'create', variant = null,
     price: '',
   })
 
+  const [originalSku, setOriginalSku] = useState(null) // Track original SKU for comparison
   const [images, setImages] = useState([])
   const [imagesToRemove, setImagesToRemove] = useState([])
   const [errors, setErrors] = useState({})
@@ -40,10 +41,12 @@ export function VariantModal({ isOpen, onClose, mode = 'create', variant = null,
         stockQuantity: variant.stockQuantity?.toString() || '0',
         price: variant.price ? variant.price.toString() : '',
       })
+      setOriginalSku(variant.sku || '') // Store the original SKU
       setPreviewColor(variant.colorCode || '#000000')
       setImages(variant.images || [])
     } else {
       resetForm()
+      setOriginalSku(null)
     }
   }, [mode, variant, isOpen])
 
@@ -55,6 +58,7 @@ export function VariantModal({ isOpen, onClose, mode = 'create', variant = null,
       stockQuantity: '0',
       price: '',
     })
+    setOriginalSku(null)
     setImages([])
     setImagesToRemove([])
     setErrors({})
@@ -132,7 +136,9 @@ export function VariantModal({ isOpen, onClose, mode = 'create', variant = null,
     }
 
     // Check SKU uniqueness (if new or changed)
-    if (mode === 'create' || (mode === 'edit' && formData.sku !== variant.sku)) {
+    // Use originalSku for comparison to ensure we're checking against the actual prior value
+    const skuChanged = mode === 'create' || formData.sku !== originalSku
+    if (skuChanged) {
       try {
         const isUnique = await variantService.isSKUUnique(formData.sku, variant?.id)
         if (!isUnique) {
