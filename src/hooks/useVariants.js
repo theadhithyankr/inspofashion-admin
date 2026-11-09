@@ -67,11 +67,19 @@ export function useVariants(productId) {
     try {
       setError(null)
       const updated = await variantService.updateVariant(variantId, updates)
+      // Only update state after successful API response
       setVariants(prev => prev.map(v => v.id === variantId ? updated : v))
       return updated
     } catch (err) {
       setError(err.message)
       console.error('Error updating variant:', err)
+      // Refresh from server on error to ensure UI matches DB
+      try {
+        const refreshed = await variantService.getVariantsByProductId(productId)
+        setVariants(refreshed)
+      } catch (refreshErr) {
+        console.error('Error refreshing variants after update failure:', refreshErr)
+      }
       throw err
     }
   }

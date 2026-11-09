@@ -15,12 +15,12 @@ export const storeSettingsService = {
   updateSettings: async (key, value) => {
     const { data, error } = await supabase
       .from('store_settings')
-      .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' })
+      .upsert({ key, value, updated_at: new Date().toISOString() })
       .select()
       .single()
 
     if (error) throw error
-    return data.value
+    return data?.value || value
   },
 
   uploadImage: async (file, path) => {
