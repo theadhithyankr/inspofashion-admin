@@ -153,7 +153,6 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
     return {}
   })
   const [existingVariants, setExistingVariants] = useState([])
-  const [variantsLoaded, setVariantsLoaded] = useState(mode !== 'edit') // Track if variants have been loaded
   const [imagesToRemove, setImagesToRemove] = useState([])
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
@@ -215,12 +214,8 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
             }
           })
           setColorVariantData(variantData)
-          setVariantsLoaded(true) // Mark variants as loaded
         })
-        .catch(err => {
-          console.error('Failed to load variants:', err)
-          setVariantsLoaded(true) // Mark as loaded even on error to avoid blocking forever
-        })
+        .catch(err => console.error('Failed to load variants:', err))
     } else if (mode === 'create') {
       setFormData(makeEmptyForm())
       setImages([])
@@ -230,7 +225,6 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
       setSavedSuccess(false)
       setExistingVariants([])
       setColorVariantData({})
-      setVariantsLoaded(true) // Create mode doesn't need variant loading
     }
   }, [mode, product?.id]) // only re-run when the actual product ID changes
 
@@ -419,34 +413,34 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
     if (images.length === 0) { setErrors(prev => ({ ...prev, image: 'At least one image is required' })); return }
     if (formData.colors.length === 0) { setErrors(prev => ({ ...prev, colors: 'At least one color must be selected' })); return }
 
-    // Ensure variants have been loaded in edit mode before proceeding
-    if (!variantsLoaded) {
-      setErrors(prev => ({ ...prev, submit: 'Loading variants... please wait' }))
-      return
-    }
+    // In edit mode the variants are fetched async. Skip client-side colorCode/sku
+    // validation entirely if existingVariants hasn't loaded yet — the save loop
+    // will fetch fresh data from the DB before writing anything.
+    const skipColorValidation = mode === 'edit' && existingVariants.length === 0
 
     let hasColorErrors = false
     const colorErrors = {}
 
-    for (const color of formData.colors) {
-      const variantData = colorVariantData[color] || {}
+    if (!skipColorValidation) {
+      for (const color of formData.colors) {
+        const variantData = colorVariantData[color] || {}
 
-      // If this color maps to an existing variant, skip client-side checks
-      const alreadySaved =
-        variantData.variantId ||
-        existingVariants.some(v => v.colorName === color)
-      if (alreadySaved) continue
+        // If this color maps to an existing variant, skip client-side checks
+        const alreadySaved =
+          variantData.variantId ||
+          existingVariants.some(v => v.colorName === color)
+        if (alreadySaved) continue
 
-      if (!variantData.colorCode) {
-        colorErrors[`color_code_${color}`] = 'Color code is required'
-        hasColorErrors = true
-      } else {
-        const codeValidation = validateHexCode(variantData.colorCode)
-        if (!codeValidation.isValid) {
-          colorErrors[`color_code_${color}`] = codeValidation.error
+        if (!variantData.colorCode) {
+          colorErrors[`color_code_${color}`] = 'Color code is required'
           hasColorErrors = true
+        } else {
+          const codeValidation = validateHexCode(variantData.colorCode)
+          if (!codeValidation.isValid) {
+            colorErrors[`color_code_${color}`] = codeValidation.error
+            hasColorErrors = true
+          }
         }
-      }
 
         if (!variantData.sku) {
           colorErrors[`sku_${color}`] = 'SKU is required'
@@ -481,10 +475,37 @@ export function ProductEditor({ mode = 'create', product = null, onSuccess, onCa
     setErrors({})
 
     try {
-      // For edit mode with proper variant loading, we can skip the re-fetch
-      // since variants are guaranteed to be loaded before reaching this code
+      // In edit mode, always fetch the current variants from the DB immediately
+      // before the save loop. Using stale state risks treating existing variants
+      // as new (hitting the SKU unique constraint) if the background fetch was
+      // incomplete or a color was re-toggled before it finished.
       let resolvedVariants = existingVariants
       let resolvedColorVariantData = colorVariantData
+      if (mode === 'edit' && product?.id) {
+        try {
+          resolvedVariants = await variantService.getVariantsByProductId(product.id)
+          const variantDataMap = {}
+          resolvedVariants.forEach(v => {
+            // Prefer any user edits already in colorVariantData; only fall back
+            // to the DB value for fields the user hasn't touched.
+            const existing = colorVariantData[v.colorName] || {}
+            variantDataMap[v.colorName] = {
+              colorCode:    existing.colorCode    ?? v.colorCode,
+              sku:          existing.sku          ?? v.sku,
+              stockQuantity: existing.stockQuantity ?? v.stockQuantity,
+              price:        existing.price        ?? v.price,
+              isActive:     existing.isActive     ?? v.isActive,
+              variantId:    v.id,                  // always use the real DB id
+              savedImages:  v.images || [],
+            }
+          })
+          resolvedColorVariantData = variantDataMap
+          setExistingVariants(resolvedVariants)
+          setColorVariantData(variantDataMap)
+        } catch (err) {
+          console.warn('Could not fetch variants before save, proceeding with cached data:', err)
+        }
+      }
 
       const finalImageUrls = []
       const imageUrlById = {}

@@ -139,10 +139,6 @@ export function VariantModal({ isOpen, onClose, mode = 'create', variant = null,
     // Use originalSku for comparison to ensure we're checking against the actual prior value
     const skuChanged = mode === 'create' || formData.sku !== originalSku
     if (skuChanged) {
-      if (!variant?.id && mode === 'edit') {
-        setErrors(prev => ({ ...prev, submit: 'Variant ID missing. Please refresh and try again.' }))
-        return
-      }
       try {
         const isUnique = await variantService.isSKUUnique(formData.sku, variant?.id)
         if (!isUnique) {
