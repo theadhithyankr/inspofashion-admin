@@ -282,8 +282,7 @@ export const variantService = {
 
     if (error) throw error
 
-    // 4. Remove image files from storage — fire-and-forget so a storage
-    //    failure does not roll back the already-committed DB deletion.
+    // 4. Remove image files from storage with proper error handling
     if (imageRows && imageRows.length > 0) {
       const filePaths = imageRows
         .map(row => {
@@ -293,6 +292,8 @@ export const variantService = {
         .filter(Boolean)
 
       if (filePaths.length > 0) {
+        // Fire this async operation but don't block the deletion
+        // Storage cleanup failures don't roll back DB deletion
         supabase.storage
           .from('product-images')
           .remove(filePaths)
@@ -300,6 +301,9 @@ export const variantService = {
             if (storageError) {
               console.warn('Storage cleanup after variant delete failed:', storageError.message)
             }
+          })
+          .catch(err => {
+            console.warn('Storage cleanup error:', err)
           })
       }
     }
